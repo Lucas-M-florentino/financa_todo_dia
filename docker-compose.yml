@@ -1,0 +1,39 @@
+version: "3.8"
+services:
+  backend-financa:
+    container_name: backend-financa
+    restart: unless-stopped
+    build:
+      context: ./backend_financa
+      dockerfile: Dockerfile
+    volumes:
+      - ./backend_financa:/usr/src/app
+      - /usr/src/app/node_modules
+    env_file:
+      - ./backend_financa/.env
+    ports:
+      - 3001:3001
+    networks:
+      - finance-net
+    command: yarn start:debug
+
+  front-cad-financa:
+    container_name: front-cad-financa
+    restart: unless-stopped
+    build:
+      context: ./front_cad_financa
+      dockerfile: Dockerfile
+    volumes:
+      - ./front_cad_financa:/usr/src/app
+      - /usr/src/app/node_modules
+    env_file:
+      - ./front_cad_financa/.env
+    ports:
+      - 4001:4001
+    networks:
+      - finance-net
+    command: yarn dev
+
+networks:
+  finance-net:
+    driver: bridge

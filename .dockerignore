@@ -1,0 +1,72 @@
+# Arquivos e diretórios específicos do sistema de controle de versão
+.git
+.gitignore
+
+# Diretórios de node_modules, que devem ser construídos dentro do contêiner
+node_modules
+
+# Arquivos de log e diretórios
+npm-debug.log
+yarn-error.log
+logs
+*.log
+
+# Arquivos de ambiente que podem conter segredos ou configurações específicas do desenvolvedor
+.env
+.env.local
+.env.development
+.env.test
+.env.production
+
+# Diretórios de cache de pacotes
+.yarn
+.yarn/cache
+.yarn/unplugged
+.yarn/build-state.yml
+.yarn/install-state.gz
+.pnpm-store
+
+# Arquivos específicos de editor/IDE
+.vscode
+.idea
+*.sublime-*
+
+# Arquivos e diretórios de build/temporários
+dist
+tmp
+out
+build
+.cache
+.parcel-cache
+
+# Diretórios de teste
+__tests__
+test
+tests
+**.test.ts
+**.spec.ts
+**.mock.ts
+
+# Arquivos de configuração de ferramentas e linters
+.eslintcache
+.tscache
+.jest
+.eslintrc.js
+.prettierrc
+*.md
+
+# Arquivos de configuração do Docker
+Dockerfile
+*.dockerignore
+
+# Outros arquivos e diretórios
+*.DS_Store
+Thumbs.db
+*.swp
+*.swo
+
+#docker compose e kustomize
+*.yml
+*.yaml
+/kustomize-api-betina-ia 
+/kustomize-api-prepara-documento
