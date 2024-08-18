@@ -1,10 +1,9 @@
 <style scoped></style>
 
 <template>
-  <header></header>
+  <header>Hello World</header>
 
   <main>
-    <TheWelcome />
   </main>
 </template>
 

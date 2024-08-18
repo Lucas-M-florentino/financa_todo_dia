@@ -3,8 +3,8 @@
 .gitignore
 
 # Diretórios de node_modules, que devem ser construídos dentro do contêiner
-node_modules
-
+./*/node_modules
+./*/dist
 # Arquivos de log e diretórios
 npm-debug.log
 yarn-error.log
