@@ -1,5 +1,14 @@
 version: "3.8"
 services:
+  financa-db:
+    container_name: financa-db
+    image: postgres:13
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - nest-network
   backend-financa:
     container_name: backend-financa
     restart: unless-stopped
@@ -12,6 +21,7 @@ services:
       - 3001:3001
     networks:
       - finance-net
+      - nest-network
     command: yarn start:debug
 
   front-cad-financa:
@@ -31,3 +41,8 @@ services:
 networks:
   finance-net:
     driver: bridge
+  nest-network:
+    driver: bridge
+
+volumes:
+  postgres_data:

@@ -1,7 +1,7 @@
 import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity()
-export class Transacao {
+export class Financa {
   @PrimaryGeneratedColumn()
   id: number;
 
@@ -12,5 +12,5 @@ export class Transacao {
   valor: number;
 
   @Column()
-  tipo: string; // receita ou despesa
+  tipo: string;
 }

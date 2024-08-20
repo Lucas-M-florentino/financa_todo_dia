@@ -1,18 +1,11 @@
-import { Body, Controller, Get, Post } from '@nestjs/common';
-import { TransacaoService } from './transacao.service';
-import { Transacao } from './transacao.entity';
+import { Controller, Get, UseGuards } from '@nestjs/common';
+import { JwtAuthGuard } from '../../auth/jwt-auth.guard';
 
-@Controller('transacoes')
+@Controller('transacao')
 export class TransacaoController {
-  constructor(private readonly transacaoService: TransacaoService) {}
-
-  @Post()
-  create(@Body() transacao: Transacao) {
-    return this.transacaoService.create(transacao);
-  }
-
+  @UseGuards(JwtAuthGuard)
   @Get()
   findAll() {
-    return this.transacaoService.findAll();
+    // Lógica para retornar transações
   }
 }

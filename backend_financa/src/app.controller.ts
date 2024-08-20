@@ -1,12 +1,11 @@
-import { Controller, Get } from '@nestjs/common';
-import { AppService } from './app.service';
+import { Controller, Get, UseGuards } from '@nestjs/common';
+import { AuthGuard } from '@nestjs/passport';
 
-@Controller()
+@Controller('api')
 export class AppController {
-  constructor(private readonly appService: AppService) {}
-
-  @Get()
-  getHello(): string {
-    return this.appService.getHello();
+  @Get('dados')
+  @UseGuards(AuthGuard('jwt'))
+  getDados() {
+    return { message: 'Dados protegidos por JWT!' };
   }
 }

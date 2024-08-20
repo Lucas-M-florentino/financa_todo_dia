@@ -10,7 +10,7 @@
 </template>
 
 <script>
-import Financeiro from './criar_registro/Financeiro.vue'
+import Financeiro from './components/criar_registro/Financeiro.vue'
 
 export default {
   components: {

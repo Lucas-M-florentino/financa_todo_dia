@@ -14,8 +14,8 @@
 <script>
 // Importando subcomponentes
 import FormularioTransacao from './FormularioTransacao.vue'
-import Relatorios from '@/vizualizar_registros/Relatorios.vue'
-import Metas from '@/vizualizar_registros/Metas.vue'
+import Relatorios from '@/components/vizualizar_registros/Relatorios.vue'
+import Metas from '@/components/vizualizar_registros/Metas.vue'
 import api from '@/repository/api'
 
 export default {

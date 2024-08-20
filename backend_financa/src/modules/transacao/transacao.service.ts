@@ -1,17 +1,20 @@
-
 import { Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 import { Transacao } from './transacao.entity';
 
 @Injectable()
 export class TransacaoService {
-  private transacoes: Transacao[] = [];
+  constructor(
+    @InjectRepository(Transacao)
+    private transacaoRepository: Repository<Transacao>,
+  ) {}
 
-  create(transacao: Transacao): Transacao {
-    this.transacoes.push(transacao);
-    return transacao;
+  findAll(): Promise<Transacao[]> {
+    return this.transacaoRepository.find();
   }
 
-  findAll(): Transacao[] {
-    return this.transacoes;
+  create(transacao: Transacao): Promise<Transacao> {
+    return this.transacaoRepository.save(transacao);
   }
 }

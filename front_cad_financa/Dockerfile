@@ -1,5 +1,5 @@
 # Use the official Node.js image as a base image
-FROM jitesoft/node-yarn:20 AS builder
+FROM node:21-alpine3.19 AS builder
 
 # Install tzdata, curl, and yarn via apk
 RUN apk add --no-cache tzdata curl yarn
