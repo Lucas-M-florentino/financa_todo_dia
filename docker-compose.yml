@@ -1,4 +1,5 @@
-version: "3.8"
+version: '3.8'
+
 services:
   financa-db:
     container_name: financa-db
@@ -9,6 +10,9 @@ services:
       - postgres_data:/var/lib/postgresql/data
     networks:
       - nest-network
+    env_file:
+      - .env
+      
   backend-financa:
     container_name: backend-financa
     restart: unless-stopped
@@ -22,7 +26,14 @@ services:
     networks:
       - finance-net
       - nest-network
-    command: yarn start:debug
+    depends_on:
+      - financa-db
+    volumes:
+      - ./backend_financa:/app
+    environment:
+      - PIPENV_VENV_IN_PROJECT=1
+      - PYTHONPATH=/app
+    command: pipenv run start
 
   front-cad-financa:
     container_name: front-cad-financa
@@ -40,9 +51,9 @@ services:
 
 networks:
   finance-net:
-    driver: bridge
+    driver: macvlan
   nest-network:
-    driver: bridge
+    driver: macvlan
 
 volumes:
   postgres_data:
