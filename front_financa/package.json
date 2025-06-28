@@ -1,5 +1,5 @@
 {
-  "name": "react-template",
+  "name": "front-finaca",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -15,6 +15,7 @@
     "@mui/material": "^6.0.2",
     "@supabase/supabase-js": "^2.47.12",
     "@types/prop-types": "^15.7.14",
+    "dotenv": "^16.5.0",
     "prop-types": "^15.8.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"

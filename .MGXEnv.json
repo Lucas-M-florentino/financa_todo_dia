@@ -1422,7 +1422,7 @@
                         },
                         {
                             "id": "72eefcdc621647539abdf0180ea41505",
-                            "content": "Command Terminal.run executed:\n[command]: pnpm i && pnpm run lint \n[command output] : \nLockfile is up to date, resolution step is skipped\nPackages: +393\n++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n\nDone in 2.8s\n\n> react-template@0.0.0 lint /data/chats/45pvud/workspace/react_template\n> eslint ./src --quiet\n\n",
+                            "content": "Command Terminal.run executed:\n[command]: pnpm i && pnpm run lint \n[command output] : \nLockfile is up to date, resolution step is skipped\nPackages: +393\n++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n\nDone in 2.8s\n\n> front-financa@0.0.0 lint /data/chats/45pvud/workspace/react_template\n> eslint ./src --quiet\n\n",
                             "instruct_content": null,
                             "role": "user",
                             "cause_by": "metagpt.actions.di.run_command.RunCommand",
@@ -1446,7 +1446,7 @@
                         },
                         {
                             "id": "776a97ae17cb476fb481d2951f211efa",
-                            "content": "Command Terminal.run executed:\n[command]: pnpm run dev \n[command output] : \nThe command is running in detach at tab 00, currently with output: \n\n> react-template@0.0.0 dev /data/chats/45pvud/workspace/react_template\n> vite\n\n\n  VITE v5.4.3  ready in 348 ms\n\n  ➜  Local:   http://localhost:5173/\n  ➜  Network: use --host to expose\n\nNew tab info: [Tab 01 created. Switched to tab 01, pwd is /data/chats/45pvud/workspace/react_template, the tab has new output: ]\nNote: You may operate on the new tab, or switch back to the detached tab 00 to get incremental output. If you successfully launch a service at the detached tab 00, you can also preview it (tab_id: 00).\n",
+                            "content": "Command Terminal.run executed:\n[command]: pnpm run dev \n[command output] : \nThe command is running in detach at tab 00, currently with output: \n\n> front-financa@0.0.0 dev /data/chats/45pvud/workspace/react_template\n> vite\n\n\n  VITE v5.4.3  ready in 348 ms\n\n  ➜  Local:   http://localhost:5173/\n  ➜  Network: use --host to expose\n\nNew tab info: [Tab 01 created. Switched to tab 01, pwd is /data/chats/45pvud/workspace/react_template, the tab has new output: ]\nNote: You may operate on the new tab, or switch back to the detached tab 00 to get incremental output. If you successfully launch a service at the detached tab 00, you can also preview it (tab_id: 00).\n",
                             "instruct_content": null,
                             "role": "user",
                             "cause_by": "metagpt.actions.di.run_command.RunCommand",
@@ -1804,7 +1804,7 @@
                             },
                             {
                                 "id": "72eefcdc621647539abdf0180ea41505",
-                                "content": "Command Terminal.run executed:\n[command]: pnpm i && pnpm run lint \n[command output] : \nLockfile is up to date, resolution step is skipped\nPackages: +393\n++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n\nDone in 2.8s\n\n> react-template@0.0.0 lint /data/chats/45pvud/workspace/react_template\n> eslint ./src --quiet\n\n",
+                                "content": "Command Terminal.run executed:\n[command]: pnpm i && pnpm run lint \n[command output] : \nLockfile is up to date, resolution step is skipped\nPackages: +393\n++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n\nDone in 2.8s\n\n> front-financa@0.0.0 lint /data/chats/45pvud/workspace/react_template\n> eslint ./src --quiet\n\n",
                                 "instruct_content": null,
                                 "role": "user",
                                 "cause_by": "metagpt.actions.di.run_command.RunCommand",
@@ -1816,7 +1816,7 @@
                             },
                             {
                                 "id": "776a97ae17cb476fb481d2951f211efa",
-                                "content": "Command Terminal.run executed:\n[command]: pnpm run dev \n[command output] : \nThe command is running in detach at tab 00, currently with output: \n\n> react-template@0.0.0 dev /data/chats/45pvud/workspace/react_template\n> vite\n\n\n  VITE v5.4.3  ready in 348 ms\n\n  ➜  Local:   http://localhost:5173/\n  ➜  Network: use --host to expose\n\nNew tab info: [Tab 01 created. Switched to tab 01, pwd is /data/chats/45pvud/workspace/react_template, the tab has new output: ]\nNote: You may operate on the new tab, or switch back to the detached tab 00 to get incremental output. If you successfully launch a service at the detached tab 00, you can also preview it (tab_id: 00).\n",
+                                "content": "Command Terminal.run executed:\n[command]: pnpm run dev \n[command output] : \nThe command is running in detach at tab 00, currently with output: \n\n> front-financa@0.0.0 dev /data/chats/45pvud/workspace/react_template\n> vite\n\n\n  VITE v5.4.3  ready in 348 ms\n\n  ➜  Local:   http://localhost:5173/\n  ➜  Network: use --host to expose\n\nNew tab info: [Tab 01 created. Switched to tab 01, pwd is /data/chats/45pvud/workspace/react_template, the tab has new output: ]\nNote: You may operate on the new tab, or switch back to the detached tab 00 to get incremental output. If you successfully launch a service at the detached tab 00, you can also preview it (tab_id: 00).\n",
                                 "instruct_content": null,
                                 "role": "user",
                                 "cause_by": "metagpt.actions.di.run_command.RunCommand",
@@ -2115,7 +2115,7 @@
                         },
                         {
                             "id": "72eefcdc621647539abdf0180ea41505",
-                            "content": "Command Terminal.run executed:\n[command]: pnpm i && pnpm run lint \n[command output] : \nLockfile is up to date, resolution step is skipped\nPackages: +393\n++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n\nDone in 2.8s\n\n> react-template@0.0.0 lint /data/chats/45pvud/workspace/react_template\n> eslint ./src --quiet\n\n",
+                            "content": "Command Terminal.run executed:\n[command]: pnpm i && pnpm run lint \n[command output] : \nLockfile is up to date, resolution step is skipped\nPackages: +393\n++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n\nDone in 2.8s\n\n> front-financa@0.0.0 lint /data/chats/45pvud/workspace/react_template\n> eslint ./src --quiet\n\n",
                             "instruct_content": null,
                             "role": "user",
                             "cause_by": "metagpt.actions.di.run_command.RunCommand",
@@ -2139,7 +2139,7 @@
                         },
                         {
                             "id": "776a97ae17cb476fb481d2951f211efa",
-                            "content": "Command Terminal.run executed:\n[command]: pnpm run dev \n[command output] : \nThe command is running in detach at tab 00, currently with output: \n\n> react-template@0.0.0 dev /data/chats/45pvud/workspace/react_template\n> vite\n\n\n  VITE v5.4.3  ready in 348 ms\n\n  ➜  Local:   http://localhost:5173/\n  ➜  Network: use --host to expose\n\nNew tab info: [Tab 01 created. Switched to tab 01, pwd is /data/chats/45pvud/workspace/react_template, the tab has new output: ]\nNote: You may operate on the new tab, or switch back to the detached tab 00 to get incremental output. If you successfully launch a service at the detached tab 00, you can also preview it (tab_id: 00).\n",
+                            "content": "Command Terminal.run executed:\n[command]: pnpm run dev \n[command output] : \nThe command is running in detach at tab 00, currently with output: \n\n> front-financa@0.0.0 dev /data/chats/45pvud/workspace/react_template\n> vite\n\n\n  VITE v5.4.3  ready in 348 ms\n\n  ➜  Local:   http://localhost:5173/\n  ➜  Network: use --host to expose\n\nNew tab info: [Tab 01 created. Switched to tab 01, pwd is /data/chats/45pvud/workspace/react_template, the tab has new output: ]\nNote: You may operate on the new tab, or switch back to the detached tab 00 to get incremental output. If you successfully launch a service at the detached tab 00, you can also preview it (tab_id: 00).\n",
                             "instruct_content": null,
                             "role": "user",
                             "cause_by": "metagpt.actions.di.run_command.RunCommand",

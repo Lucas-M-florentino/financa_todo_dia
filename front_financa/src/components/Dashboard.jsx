@@ -3,25 +3,29 @@ import React, { useContext, useState, useMemo } from 'react';
 import { FinanceContext } from '../context/FinanceContext';
 
 const Dashboard = () => {
-  const { transactions } = useContext(FinanceContext);
+  const { transactions, deleteTransaction } = useContext(FinanceContext);
   const [timeFilter, setTimeFilter] = useState('all');
   const [categoryFilter, setCategoryFilter] = useState('all');
   
+  // Ensure transactions is always an array
+  const safeTransactions = Array.isArray(transactions) ? transactions : [];
+
   // Filter transactions based on selected time period
   const filteredTransactions = useMemo(() => {
-    let filtered = [...transactions];
+    let filtered = [...safeTransactions];
     
     // Time filter
     if (timeFilter !== 'all') {
       const now = new Date();
       let startDate;
       
+      let day;
       switch (timeFilter) {
         case 'month':
           startDate = new Date(now.getFullYear(), now.getMonth(), 1);
           break;
         case 'week':
-          const day = now.getDay();
+          day = now.getDay();
           startDate = new Date(now);
           startDate.setDate(now.getDate() - day);
           break;
@@ -52,11 +56,11 @@ const Dashboard = () => {
   // Calculate summary data
   const summary = useMemo(() => {
     const income = filteredTransactions
-      .filter(t => t.amount > 0)
+      .filter(t => t.type === 'income')
       .reduce((sum, t) => sum + t.amount, 0);
       
     const expenses = filteredTransactions
-      .filter(t => t.amount < 0)
+      .filter(t => t.type === 'expense')
       .reduce((sum, t) => sum + Math.abs(t.amount), 0);
       
     const balance = income - expenses;
@@ -64,11 +68,13 @@ const Dashboard = () => {
     // Get categories for expenses
     const expensesByCategory = {};
     filteredTransactions
-      .filter(t => t.amount < 0)
+      .filter(t => t.type === 'expense')
       .forEach(t => {
         expensesByCategory[t.category] = (expensesByCategory[t.category] || 0) + Math.abs(t.amount);
       });
-    
+
+    console.log(filteredTransactions.length, 'filteredTransactions.length');
+
     return {
       income, 
       expenses, 
@@ -77,12 +83,11 @@ const Dashboard = () => {
     };
   }, [filteredTransactions]);
 
-  // Get unique categories for filter
   const uniqueCategories = useMemo(() => {
     const categories = new Set();
-    transactions.forEach(t => categories.add(t.category));
+    safeTransactions.forEach(t => categories.add(t.category));
     return ['all', ...Array.from(categories)];
-  }, [transactions]);
+  }, [safeTransactions]);
 
   // Create simplified bar chart for expenses by category
   const renderBarChart = () => {
@@ -192,6 +197,8 @@ const Dashboard = () => {
                     <th className="text-left py-2 px-3">Descrição</th>
                     <th className="text-left py-2 px-3">Categoria</th>
                     <th className="text-right py-2 px-3">Valor</th>
+                    <th className="text-right py-2 px-3">Remover</th>
+
                   </tr>
                 </thead>
                 <tbody>
@@ -204,9 +211,20 @@ const Dashboard = () => {
                       <td className="py-2 px-3">{transaction.description}</td>
                       <td className="py-2 px-3">{transaction.category}</td>
                       <td className={`py-2 px-3 text-right font-medium ${
-                        transaction.amount >= 0 ? 'text-green-600' : 'text-red-600'
+                        transaction.type === 'income' ? 'text-green-600' : 'text-red-600'
                       }`}>
-                        R$ {Math.abs(transaction.amount).toFixed(2)}
+                        R$ {transaction.type === 'expense' ? - Math.abs(transaction.amount).toFixed(2) : Math.abs(transaction.amount).toFixed(2)}
+                      </td>
+                      <td className="py-2 px-3 text-right">
+                        <button 
+                          onClick={() => {
+                            // Call delete function here
+                            deleteTransaction(transaction.id);
+                          }}
+                          className="text-red-600 hover:text-red-800"
+                        >
+                          Remover
+                        </button>
                       </td>
                     </tr>
                   ))}

@@ -18,7 +18,7 @@ const TransactionForm = () => {
   
   const categories = {
     income: ['Salário', 'Freelance', 'Investimentos', 'Outros'],
-    expense: ['Alimentação', 'Moradia', 'Transporte', 'Lazer', 'Saúde', 'Educação', 'Outros']
+    expense: ['Alimentação', 'Moradia', 'Transporte', 'Lazer', 'Saúde', 'Educação', 'Contas', 'Mercearia', 'Outros']
   };
 
   const handleChange = (e) => {
@@ -45,7 +45,8 @@ const TransactionForm = () => {
     const newTransaction = {
       id: Date.now().toString(),
       description: formData.description,
-      amount: formData.type === 'expense' ? -amountValue : amountValue,
+      amount: amountValue,
+      type: formData.type,
       category: formData.category,
       date: formData.date,
       createdAt: new Date().toISOString()

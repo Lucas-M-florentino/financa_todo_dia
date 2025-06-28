@@ -1,19 +1,25 @@
 // src/context/FinanceContext.jsx
 import React, { createContext, useState, useEffect } from 'react';
-import { getTransactions, saveTransactions } from '../utils/localStorage';
-
+// import { getTransactions, saveTransactions } from '../utils/localStorage';
+import { getTransactions, saveTransactions } from '../utils/api';
+/*
+  Modificação: Não consultar transações anteriores.
+  Remover o carregamento inicial de transações.
+  Apenas enviar (salvar) transações quando elas mudarem.
+*/
 export const FinanceContext = createContext();
 
 export const FinanceProvider = ({ children }) => {
   const [transactions, setTransactions] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Load transactions from localStorage on initial render
+  // Load transactions from api on initial render
   useEffect(() => {
     const loadTransactions = async () => {
       try {
-        const savedTransactions = getTransactions();
-        setTransactions(savedTransactions);
+        const savedTransactions = await getTransactions();
+        console.log('Loaded transactions:', savedTransactions);
+        setTransactions(Array.isArray(savedTransactions) ? savedTransactions : []);
       } catch (error) {
         console.error('Error loading transactions:', error);
         // Start with empty array if error occurs
@@ -26,16 +32,15 @@ export const FinanceProvider = ({ children }) => {
     loadTransactions();
   }, []);
 
-  // Save transactions to localStorage whenever they change
-  useEffect(() => {
-    if (!isLoading) {
-      saveTransactions(transactions);
-    }
-  }, [transactions, isLoading]);
-
   // Add a new transaction
   const addTransaction = (transaction) => {
-    setTransactions(prevTransactions => [...prevTransactions, transaction]);
+    saveTransactions([transaction])
+      .then(() => {
+        setTransactions(prevTransactions => [...prevTransactions, transaction]);
+      })
+      .catch(error => {
+        console.error('Error saving transaction:', error);
+      });
   };
 
   // Delete a transaction by ID
@@ -62,11 +67,11 @@ export const FinanceProvider = ({ children }) => {
   // Calculate summary statistics
   const getFinancialSummary = () => {
     const income = transactions
-      .filter(t => t.amount > 0)
+      .filter(t => t.type === 'income')
       .reduce((sum, t) => sum + t.amount, 0);
       
     const expenses = transactions
-      .filter(t => t.amount < 0)
+      .filter(t => t.type === 'expense')
       .reduce((sum, t) => sum + Math.abs(t.amount), 0);
       
     const balance = income - expenses;
@@ -74,16 +79,27 @@ export const FinanceProvider = ({ children }) => {
     return { income, expenses, balance };
   };
 
+  // Memoize the context value to avoid unnecessary re-renders
+  const contextValue = React.useMemo(() => ({
+    transactions,
+    isLoading,
+    addTransaction,
+    deleteTransaction,
+    updateTransaction,
+    clearTransactions,
+    getFinancialSummary
+  }), [
+    transactions,
+    isLoading,
+    addTransaction,
+    deleteTransaction,
+    updateTransaction,
+    clearTransactions,
+    getFinancialSummary
+  ]);
+
   return (
-    <FinanceContext.Provider value={{
-      transactions,
-      isLoading,
-      addTransaction,
-      deleteTransaction,
-      updateTransaction,
-      clearTransactions,
-      getFinancialSummary
-    }}>
+    <FinanceContext.Provider value={contextValue}>
       {children}
     </FinanceContext.Provider>
   );

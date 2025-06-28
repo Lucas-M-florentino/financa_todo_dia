@@ -1,59 +1,52 @@
-version: '3.8'
-
 services:
-  financa-db:
-    container_name: financa-db
-    image: postgres:13
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    networks:
-      - nest-network
-    env_file:
-      - .env
-      
-  backend-financa:
-    container_name: backend-financa
-    restart: unless-stopped
+  backend:
+    container_name: backend
     build:
-      context: ./backend_financa
+      context: ./backend
       dockerfile: Dockerfile
-    env_file:
-      - ./backend_financa/.env
+      args:
+        DEV: true
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
     ports:
-      - 3001:3001
-    networks:
-      - finance-net
-      - nest-network
+      - "8000:8000"
+    env_file:
+      - ./backend/.env
     depends_on:
-      - financa-db
+      - neo4j
     volumes:
-      - ./backend_financa:/app
-    environment:
-      - PIPENV_VENV_IN_PROJECT=1
-      - PYTHONPATH=/app
-    command: pipenv run start
+      - ./backend:/app
 
-  front-cad-financa:
-    container_name: front-cad-financa
-    restart: unless-stopped
+  frontend:
+    container_name: frontend
     build:
-      context: ./front_cad_financa
+      context: ./front_financa
       dockerfile: Dockerfile
-    env_file:
-      - ./front_cad_financa/.env
     ports:
-      - 5173:5173
-    networks:
-      - finance-net
-    command: yarn dev
+      - "5173:5173"
+    volumes:
+      - ./front_financa:/app
+      - /app/node_modules
+    env_file:
+      - ./front_financa/.env
 
-networks:
-  finance-net:
-    driver: macvlan
-  nest-network:
-    driver: macvlan
+  neo4j:
+    container_name: neo4j
+    image: neo4j:5.13
+    ports:
+      - "7474:7474"
+      - "7687:7687"
+    environment:
+      - NEO4J_AUTH=neo4j/password
+      - NEO4J_dbms_memory_heap_max__size=1G
+      - NEO4J_dbms_memory_heap_initial__size=512M
+    volumes:
+      - neo4j_data:/data
+      - neo4j_logs:/logs
+      - neo4j_import:/import
+      - neo4j_plugins:/plugins
 
 volumes:
-  postgres_data:
+  neo4j_data:
+  neo4j_logs:
+  neo4j_import:
+  neo4j_plugins:
