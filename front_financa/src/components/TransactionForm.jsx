@@ -1,10 +1,11 @@
 // src/components/TransactionForm.jsx
-import React, { useState, useContext } from 'react';
+import { useState, useContext } from 'react';
 import { FinanceContext } from '../context/FinanceContext';
 
+
 const TransactionForm = () => {
-  const { addTransaction } = useContext(FinanceContext);
-  
+  const { addTransaction, categories } = useContext(FinanceContext);
+
   const initialState = {
     description: '',
     amount: '',
@@ -12,23 +13,32 @@ const TransactionForm = () => {
     category: '',
     date: new Date().toISOString().split('T')[0]
   };
-  
+
   const [formData, setFormData] = useState(initialState);
   const [feedback, setFeedback] = useState({ show: false, message: '', type: '' });
-  
-  const categories = {
-    income: ['Salário', 'Freelance', 'Investimentos', 'Outros'],
-    expense: ['Alimentação', 'Moradia', 'Transporte', 'Lazer', 'Saúde', 'Educação', 'Contas', 'Mercearia', 'Outros']
-  };
+  console.log('Categorias no form:', categories);
+
+
+  // {
+  //   income: ['Salário', 'Freelance', 'Investimentos', 'Outros'],
+  //   expense: ['Alimentação', 'Moradia', 'Transporte', 'Lazer', 'Saúde', 'Educação', 'Contas', 'Mercearia', 'Outros']
+  // };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+
+    // Garantir que 'amount' seja string válida
+    if (name === 'amount') {
+      setFormData(prev => ({ ...prev, [name]: value.replace(',', '.') }));
+    } else {
+      setFormData(prev => ({ ...prev, [name]: value }));
+    }
   };
+
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    
+
     // Validação
     if (!formData.description || !formData.amount || !formData.category) {
       setFeedback({ show: true, message: 'Por favor, preencha todos os campos', type: 'error' });
@@ -40,52 +50,50 @@ const TransactionForm = () => {
       setFeedback({ show: true, message: 'Valor inválido', type: 'error' });
       return;
     }
-    
+
     // Criar transação
     const newTransaction = {
       id: Date.now().toString(),
       description: formData.description,
       amount: amountValue,
       type: formData.type,
-      category: formData.category,
+      category_id: parseInt(formData.category),
       date: formData.date,
       createdAt: new Date().toISOString()
     };
-    
+
     addTransaction(newTransaction);
-    
+
     // Reset e feedback
     setFormData(initialState);
-    setFeedback({ 
-      show: true, 
-      message: 'Transação registrada com sucesso!', 
-      type: 'success' 
+    setFeedback({
+      show: true,
+      message: 'Transação registrada com sucesso!',
+      type: 'success'
     });
-    
+
     setTimeout(() => setFeedback({ show: false, message: '', type: '' }), 3000);
   };
 
   return (
     <div className="max-w-2xl mx-auto bg-white rounded-lg shadow-md p-6">
       <h2 className="text-2xl font-semibold text-gray-800 mb-6">Registrar Transação</h2>
-      
+
       {feedback.show && (
-        <div className={`p-3 rounded-md mb-4 ${
-          feedback.type === 'success' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
-        }`}>
+        <div className={`p-3 rounded-md mb-4 ${feedback.type === 'success' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+          }`}>
           {feedback.message}
         </div>
       )}
-      
+
       <form onSubmit={handleSubmit}>
         <div className="mb-4">
           <label className="block text-gray-700 font-medium mb-2" htmlFor="type">
             Tipo
           </label>
           <div className="flex space-x-4">
-            <label className={`flex-1 flex items-center p-3 border rounded-md cursor-pointer ${
-              formData.type === 'income' ? 'bg-green-100 border-green-400' : 'bg-white'
-            }`}>
+            <label className={`flex-1 flex items-center p-3 border rounded-md cursor-pointer ${formData.type === 'income' ? 'bg-green-100 border-green-400' : 'bg-white'
+              }`}>
               <input
                 type="radio"
                 name="type"
@@ -96,10 +104,9 @@ const TransactionForm = () => {
               />
               <span>Receita</span>
             </label>
-            
-            <label className={`flex-1 flex items-center p-3 border rounded-md cursor-pointer ${
-              formData.type === 'expense' ? 'bg-red-100 border-red-400' : 'bg-white'
-            }`}>
+
+            <label className={`flex-1 flex items-center p-3 border rounded-md cursor-pointer ${formData.type === 'expense' ? 'bg-red-100 border-red-400' : 'bg-white'
+              }`}>
               <input
                 type="radio"
                 name="type"
@@ -112,7 +119,7 @@ const TransactionForm = () => {
             </label>
           </div>
         </div>
-        
+
         <div className="mb-4">
           <label className="block text-gray-700 font-medium mb-2" htmlFor="description">
             Descrição
@@ -127,7 +134,7 @@ const TransactionForm = () => {
             placeholder="Ex: Compra no supermercado"
           />
         </div>
-        
+
         <div className="mb-4">
           <label className="block text-gray-700 font-medium mb-2" htmlFor="amount">
             Valor (R$)
@@ -144,7 +151,7 @@ const TransactionForm = () => {
             placeholder="0.00"
           />
         </div>
-        
+
         <div className="mb-4">
           <label className="block text-gray-700 font-medium mb-2" htmlFor="category">
             Categoria
@@ -157,12 +164,13 @@ const TransactionForm = () => {
             className="w-full p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
           >
             <option value="">Selecione uma categoria</option>
-            {categories[formData.type].map(category => (
-              <option key={category} value={category}>{category}</option>
+            {(categories?.[formData.type] ?? []).map(cat => (
+              <option key={cat.id} value={cat.id}>{cat.name}</option>
             ))}
           </select>
+
         </div>
-        
+
         <div className="mb-6">
           <label className="block text-gray-700 font-medium mb-2" htmlFor="date">
             Data
@@ -176,12 +184,11 @@ const TransactionForm = () => {
             className="w-full p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
           />
         </div>
-        
+
         <button
           type="submit"
-          className={`w-full py-2 px-4 rounded-md text-white font-medium ${
-            formData.type === 'income' ? 'bg-green-600 hover:bg-green-700' : 'bg-indigo-600 hover:bg-indigo-700'
-          } transition duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500`}
+          className={`w-full py-2 px-4 rounded-md text-white font-medium ${formData.type === 'income' ? 'bg-green-600 hover:bg-green-700' : 'bg-indigo-600 hover:bg-indigo-700'
+            } transition duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500`}
         >
           Registrar {formData.type === 'income' ? 'Receita' : 'Despesa'}
         </button>

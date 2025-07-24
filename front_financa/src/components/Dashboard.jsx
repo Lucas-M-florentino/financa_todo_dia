@@ -46,7 +46,7 @@ const Dashboard = () => {
     // Category filter
     if (categoryFilter !== 'all') {
       filtered = filtered.filter(transaction => 
-        transaction.category === categoryFilter
+        transaction.category_name === categoryFilter
       );
     }
     
@@ -70,10 +70,9 @@ const Dashboard = () => {
     filteredTransactions
       .filter(t => t.type === 'expense')
       .forEach(t => {
-        expensesByCategory[t.category] = (expensesByCategory[t.category] || 0) + Math.abs(t.amount);
+        expensesByCategory[t.category_name] = (expensesByCategory[t.category_name] || 0) + Math.abs(t.amount);
       });
 
-    console.log(filteredTransactions.length, 'filteredTransactions.length');
 
     return {
       income, 
@@ -85,7 +84,7 @@ const Dashboard = () => {
 
   const uniqueCategories = useMemo(() => {
     const categories = new Set();
-    safeTransactions.forEach(t => categories.add(t.category));
+    safeTransactions.forEach(t => categories.add(t.category_name));
     return ['all', ...Array.from(categories)];
   }, [safeTransactions]);
 
@@ -99,10 +98,10 @@ const Dashboard = () => {
     
     return (
       <div className="space-y-3">
-        {Object.entries(summary.expensesByCategory).map(([category, value]) => (
-          <div key={category} className="flex flex-col">
+        {Object.entries(summary.expensesByCategory).map(([category_name, value]) => (
+          <div key={category_name} className="flex flex-col">
             <div className="flex justify-between text-sm mb-1">
-              <span>{category}</span>
+              <span>{category_name}</span>
               <span>R$ {value.toFixed(2)}</span>
             </div>
             <div className="w-full bg-gray-200 rounded-full h-2.5">
@@ -177,13 +176,14 @@ const Dashboard = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className=" bg-white rounded-lg shadow-md p-6">
         <div className="bg-white rounded-lg shadow-md p-6">
           <h3 className="text-lg font-semibold text-gray-800 mb-4">Despesas por Categoria</h3>
           {renderBarChart()}
         </div>
         
-        <div className="bg-white rounded-lg shadow-md p-6">
+        
+        <div className="bg-white rounded-lg shadow-md p-6 mt-6">
           <h3 className="text-lg font-semibold text-gray-800 mb-4">Transações Recentes</h3>
           
           {filteredTransactions.length === 0 ? (

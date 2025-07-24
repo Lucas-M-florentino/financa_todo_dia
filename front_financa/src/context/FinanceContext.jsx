@@ -1,7 +1,8 @@
 // src/context/FinanceContext.jsx
 import React, { createContext, useState, useEffect } from 'react';
 // import { getTransactions, saveTransactions } from '../utils/localStorage';
-import { getTransactions, saveTransactions } from '../utils/api';
+import { getTransactions, saveTransactions, getAllCategories } from '../utils/api';
+
 /*
   Modificação: Não consultar transações anteriores.
   Remover o carregamento inicial de transações.
@@ -12,6 +13,7 @@ export const FinanceContext = createContext();
 export const FinanceProvider = ({ children }) => {
   const [transactions, setTransactions] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [categories, setCategories] = useState({ income: [], expense: [] });
 
   // Load transactions from api on initial render
   useEffect(() => {
@@ -32,6 +34,34 @@ export const FinanceProvider = ({ children }) => {
     loadTransactions();
   }, []);
 
+  // Fetch categories from API on mount
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const data = await getAllCategories();
+
+        // Verifica se é um array com pelo menos um objeto com income/expense
+        if (data.income && data.expense) {
+          setCategories({
+            income: data.income,
+            expense: data.expense,
+          });
+
+          console.log('Categorias carregadas:', data);
+        } else {
+          console.warn('Formato inesperado ao carregar categorias:', data);
+          setCategories({ income: [], expense: [] });
+        }
+      } catch (error) {
+        console.error('Erro ao buscar categorias:', error);
+        setCategories({ income: [], expense: [] });
+      }
+    };
+
+    fetchCategories();
+  }, []);
+
+
   // Add a new transaction
   const addTransaction = (transaction) => {
     saveTransactions([transaction])
@@ -45,15 +75,15 @@ export const FinanceProvider = ({ children }) => {
 
   // Delete a transaction by ID
   const deleteTransaction = (id) => {
-    setTransactions(prevTransactions => 
+    setTransactions(prevTransactions =>
       prevTransactions.filter(transaction => transaction.id !== id)
     );
   };
 
   // Update an existing transaction
   const updateTransaction = (id, updatedTransaction) => {
-    setTransactions(prevTransactions => 
-      prevTransactions.map(transaction => 
+    setTransactions(prevTransactions =>
+      prevTransactions.map(transaction =>
         transaction.id === id ? { ...transaction, ...updatedTransaction } : transaction
       )
     );
@@ -68,35 +98,29 @@ export const FinanceProvider = ({ children }) => {
   const getFinancialSummary = () => {
     const income = transactions
       .filter(t => t.type === 'income')
-      .reduce((sum, t) => sum + t.amount, 0);
-      
+      .reduce((sum, t) => sum + Math.abs(t.amount), 0);
+
     const expenses = transactions
       .filter(t => t.type === 'expense')
       .reduce((sum, t) => sum + Math.abs(t.amount), 0);
-      
+
     const balance = income - expenses;
-    
+
     return { income, expenses, balance };
   };
 
+
   // Memoize the context value to avoid unnecessary re-renders
-  const contextValue = React.useMemo(() => ({
+  const contextValue = {
     transactions,
+    categories,
     isLoading,
     addTransaction,
     deleteTransaction,
     updateTransaction,
     clearTransactions,
     getFinancialSummary
-  }), [
-    transactions,
-    isLoading,
-    addTransaction,
-    deleteTransaction,
-    updateTransaction,
-    clearTransactions,
-    getFinancialSummary
-  ]);
+  };
 
   return (
     <FinanceContext.Provider value={contextValue}>
