@@ -2,8 +2,9 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 import os
-from app.api import routes, chat
-
+from app.api import routes
+from app.api.llm import chat
+import logging
 
 load_dotenv()
 
@@ -24,4 +25,7 @@ app.include_router(chat.router, prefix="/api")
 
 @app.get("/")
 async def root():
+    """Rota raiz para verificar se o backend está funcionando."""
+    logging.info("Backend is running")
     return {"message": "FastAPI Backend Running"}
+

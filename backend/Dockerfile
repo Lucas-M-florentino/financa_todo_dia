@@ -13,5 +13,9 @@ RUN pip install -r requirements.txt
 # Copiar o resto do código
 COPY /app ./
 
+# Executa Alembic (se já estiver configurado)
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+ENTRYPOINT ["/entrypoint.sh"]
 
 CMD ["python", "-m", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "3001", "--reload"]
