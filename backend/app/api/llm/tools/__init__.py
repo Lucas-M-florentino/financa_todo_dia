@@ -1,33 +1,24 @@
-# app/api/llm/tools/__init__.py
-from .functions import (
-    create_transaction,
-    get_all_transactions,
-    get_transactions_by_category,
-    get_transaction_by_id,
-    update_transaction,
-    delete_transaction,
-    bulk_create_transactions,
-    get_categories,
-    get_transactions_by_date_range,
-    get_transactions_by_type,
-    get_transactions_by_description,
-)
 
+# backend/app/api/llm/tools/__init__.py (atualizado)
 
-FUNCTION_REGISTRY = {
-    "add_transaction": create_transaction,
-    "get_all_transactions": get_all_transactions,
-    "get_transactions_by_category": get_transactions_by_category,
-    "get_transaction_by_id": get_transaction_by_id,
-    "update_transaction": update_transaction,
-    "delete_transaction": delete_transaction,
-    "bulk_create_transactions": bulk_create_transactions,
-    "get_categories": get_categories,
-    "get_transactions_by_date_range": get_transactions_by_date_range,
-    "get_transactions_by_type": get_transactions_by_type,
-    "get_transactions_by_description": get_transactions_by_description,
-}
-
+from .functions import get_tools, set_db_session, get_db_session
 
 def get_function_by_name(name: str):
-    return FUNCTION_REGISTRY.get(name)
+    """
+    Obtém a função de ferramenta pelo nome.
+    
+    :param name: Nome da função.
+    :return: Função correspondente ou None se não for encontrada.
+    """
+    tools = get_tools()
+    for tool in tools:
+        if tool.name == name:
+            return tool
+    return None
+
+__all__ = [
+    "get_tools",
+    "set_db_session", 
+    "get_db_session",
+    "get_function_by_name"
+]

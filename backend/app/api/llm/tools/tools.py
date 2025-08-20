@@ -1,3 +1,4 @@
+# backend/app/api/llm/tools/tools.py
 # Defina suas ferramentas para o Gemini
 class Tools:
 
@@ -62,6 +63,26 @@ class Tools:
             },
         },
         {
+            "name": "get_top_spending_category",
+            "description": "Retorna a categoria com o maior gasto total em um período de datas especificado.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "start_date": {
+                        "type": "string",
+                        "format": "date-time",
+                        "description": "Data inicial no formato YYYY-MM-DD (obrigatório).",
+                    },
+                    "end_date": {
+                        "type": "string",
+                        "format": "date-time",
+                        "description": "Data final no formato YYYY-MM-DD (obrigatório).",
+                    },
+                },
+                "required": ["start_date", "end_date"],
+            },
+        },
+        {
             "name": "update_transaction",
             "description": "Atualiza os detalhes de uma transação financeira existente usando seu ID. Você pode atualizar o valor, ID da categoria, descrição, tipo, data ou notas. A categoria deve ser um ID numérico. Se o usuário fornecer um nome de categoria, você DEVE primeiro chamar a ferramenta 'get_categories' para encontrar o 'category_id' correspondente.",
             "parameters": {
@@ -122,34 +143,21 @@ class Tools:
                 "type": "object",
                 "properties": {
                     "transactions_data": {
-                        "type": "array",
-                        "description": "Uma lista de objetos de transação a serem criados.",
-                        "items": {
-                            "type": "object",
-                            "properties": {
-                                "amount": {"type": "number"},
-                                "category_id": {"type": "integer"},
-                                "date": {
-                                    "type": "string",
-                                    "format": "date-time",
-                                    "description": "Data da transação no formato YYYY-MM-DDTHH:MM:SS",
-                                },
-                                "description": {"type": "string"},
-                                "type": {
-                                    "type": "string",
-                                    "enum": ["income", "expense"],
-                                },
-                                "notes": {"type": "string"},
-                            },
-                            "required": [
-                                "amount",
-                                "category_id",
-                                "date",
-                                "description",
-                                "type",
-                            ],
-                        },
-                    },
+    "type": "array",
+    "description": "Uma lista de objetos de transação a serem criados.",
+    "items": {
+        "type": "object",
+        "properties": {
+            "amount": {"type": "number"},
+            "category_id": {"type": "integer"},
+            "date": {"type": "string", "format": "date-time", "description": "Data da transação no formato YYYY-MM-DD"},
+            "description": {"type": "string"},
+            "type": {"type": "string", "enum": ["income", "expense"]},
+            "notes": {"type": "string"}
+        },
+        "required": ["amount", "category_id", "date", "description", "type"]
+    }
+}
                 },
                 "required": ["transactions_data"],
             },
@@ -163,7 +171,6 @@ class Tools:
                 "required": [],
             },
         },
-        # --- NOVAS FUNÇÕES DE LEITURA ---
         {
             "name": "get_transactions_by_category",
             "description": "Retorna transações filtradas por uma categoria específica e, opcionalmente, por um período de datas. Se o usuário fornecer um nome de categoria, você DEVE primeiro chamar a ferramenta 'get_categories' para encontrar o 'category_id' correspondente antes de chamar esta ferramenta.",
@@ -185,9 +192,7 @@ class Tools:
                         "description": "Data final para o filtro no formato YYYY-MM-DD (opcional).",
                     },
                 },
-                "required": [
-                    "category_id"
-                ],  
+                "required": ["category_id"],
             },
         },
         {
@@ -239,6 +244,28 @@ class Tools:
                 "required": ["description_keyword"],
             },
         },
+        {
+            "name": "get_transactions_by_type_and_date_range",
+            "description": "Filtra transações por tipo e intervalo de datas",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "transaction_type": {
+                        "type": "string",
+                        "description": "Tipo de transação, ex: 'despesa' ou 'receita'",
+                    },
+                    "start_date": {
+                        "type": "string",
+                        "description": "Data inicial no formato YYYY-MM-DD",
+                    },
+                    "end_date": {
+                        "type": "string",
+                        "description": "Data final no formato YYYY-MM-DD",
+                    },
+                },
+                "required": ["transaction_type", "start_date", "end_date"],
+            },
+        },
     ]
 
     @classmethod
@@ -261,7 +288,3 @@ class Tools:
         if cls.get_tool_by_name(tool["name"]):
             raise ValueError(f"Tool '{tool['name']}' já existe.")
         cls._tools.append(tool)
-
-    @classmethod
-    def get_tools(cls):
-        return cls._tools

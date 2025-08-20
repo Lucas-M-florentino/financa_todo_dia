@@ -9,11 +9,41 @@ from sqlalchemy import (
     ForeignKey,
     CheckConstraint,
 )
-from sqlalchemy.orm import relationship, declarative_base   
+from sqlalchemy.orm import relationship, declarative_base
 from datetime import datetime
 
 Base = declarative_base()
 metadata = Base.metadata
+
+
+class Empresa(Base):
+    __tablename__ = "empresas"
+
+    id = Column(Integer, primary_key=True, index=True)
+    nome = Column(String(255), nullable=False)
+    cnpj = Column(String(18), unique=True, nullable=False)
+    telefone = Column(String(20), nullable=True)
+    endereco = Column(Text, nullable=True)
+
+    usuarios = relationship("UserModel", back_populates="empresa")
+    transactions = relationship("Transaction", back_populates="empresa")
+
+
+class UserModel(Base):
+    __tablename__ = "users"
+
+    id = Column(Integer, primary_key=True, index=True)
+    nome = Column(String, nullable=False)
+    email = Column(String, unique=True, index=True, nullable=False)
+    cargo = Column(String, nullable=True)
+    telefone = Column(String, nullable=True)
+    password = Column(String, nullable=False)
+
+    empresa_id = Column(Integer, ForeignKey("empresas.id", ondelete="SET NULL"), nullable=True)
+    empresa = relationship("Empresa", back_populates="usuarios")
+
+    transactions = relationship("Transaction", back_populates="usuario")
+
 
 class Category(Base):
     __tablename__ = "categories"
@@ -26,7 +56,6 @@ class Category(Base):
         CheckConstraint("type IN ('income', 'expense')", name="check_category_type"),
     )
 
-    # Relacionamento reverso: lista de transações dessa categoria
     transactions = relationship("Transaction", back_populates="category")
 
 
@@ -39,12 +68,16 @@ class Transaction(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
     date = Column(Date, nullable=False)
     description = Column(Text, nullable=False)
-    type = Column(String(10), nullable=False)  # opcional, pode validar com a categoria
+    type = Column(String(10), nullable=False)
     notes = Column(Text, nullable=True)
+
+    usuario_id = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
+    empresa_id = Column(Integer, ForeignKey("empresas.id", ondelete="SET NULL"), nullable=True)
 
     __table_args__ = (
         CheckConstraint("type IN ('income', 'expense')", name="check_transaction_type"),
     )
 
-    # Relacionamento com a categoria
     category = relationship("Category", back_populates="transactions")
+    usuario = relationship("UserModel", back_populates="transactions")
+    empresa = relationship("Empresa", back_populates="transactions")
