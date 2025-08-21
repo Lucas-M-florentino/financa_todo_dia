@@ -16,7 +16,6 @@ const TransactionForm = () => {
 
   const [formData, setFormData] = useState(initialState);
   const [feedback, setFeedback] = useState({ show: false, message: '', type: '' });
-  console.log('Categorias no form:', categories);
 
 
   // {

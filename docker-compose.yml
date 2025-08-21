@@ -12,7 +12,9 @@ services:
     env_file:
       - ./backend/.env
     depends_on:
+      - postgres
       - neo4j
+      - redis
     volumes:
       - ./backend:/app
 
@@ -29,6 +31,30 @@ services:
     env_file:
       - ./front_financa/.env
 
+  redis:
+    image: redis:7-alpine
+    container_name: redis-cache
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    restart: always
+
+  postgres:
+      image: postgres:15
+      container_name: pg_financas
+      restart: always
+      env_file:
+      - ./.env
+      environment:
+        POSTGRES_USER: ${POSTGRES_USER}
+        POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+        POSTGRES_DB: ${POSTGRES_DB}
+      ports:
+        - "5433:5432"
+      volumes:
+        - pgdata:/var/lib/postgresql/data
+
   neo4j:
     container_name: neo4j
     image: neo4j:5.13
@@ -37,15 +63,24 @@ services:
       - "7687:7687"
     environment:
       - NEO4J_AUTH=neo4j/password
+      - NEO4J_dbms_security_auth__enabled=false
       - NEO4J_dbms_memory_heap_max__size=1G
       - NEO4J_dbms_memory_heap_initial__size=512M
     volumes:
-      - neo4j_data:/data
-      - neo4j_logs:/logs
-      - neo4j_import:/import
-      - neo4j_plugins:/plugins
+        - neo4j_data:/data
+        - neo4j_logs:/logs
+        - ./init-scripts:/init-scripts
+    command: >
+      bash -c "
+        bin/neo4j start &&
+        sleep 15 &&
+        cypher-shell -u neo4j -p password < /init-scripts/init.cypher &&
+        tail -f logs/neo4j.log
+      "
 
 volumes:
+  redis_data:
+  pgdata:
   neo4j_data:
   neo4j_logs:
   neo4j_import:

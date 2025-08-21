@@ -20,8 +20,8 @@ app.add_middleware(
 )
 
 # Include routes
-app.include_router(routes.router, prefix="/api", tags=["items"])
-app.include_router(chat.router, prefix="/api")
+app.include_router(routes.router, prefix="/api")
+app.include_router(chat.router, prefix="/api", tags=["LLM"])
 
 @app.get("/")
 async def root():

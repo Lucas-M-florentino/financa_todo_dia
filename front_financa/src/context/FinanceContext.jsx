@@ -1,7 +1,7 @@
 // src/context/FinanceContext.jsx
 import React, { createContext, useState, useEffect } from 'react';
 // import { getTransactions, saveTransactions } from '../utils/localStorage';
-import { getTransactions, saveTransactions, getAllCategories } from '../utils/api';
+import { getTransactions, saveTransactions, updateTransactionId, deleteTransactionId, getAllCategories, setAuthToken } from '../utils/api';
 
 /*
   Modificação: Não consultar transações anteriores.
@@ -15,12 +15,18 @@ export const FinanceProvider = ({ children }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [categories, setCategories] = useState({ income: [], expense: [] });
 
+  useEffect(() => {
+  const token = localStorage.getItem('authToken');
+  if (token) {
+    setAuthToken(token);
+  }
+}, []);
+
   // Load transactions from api on initial render
   useEffect(() => {
     const loadTransactions = async () => {
       try {
         const savedTransactions = await getTransactions();
-        console.log('Loaded transactions:', savedTransactions);
         setTransactions(Array.isArray(savedTransactions) ? savedTransactions : []);
       } catch (error) {
         console.error('Error loading transactions:', error);
@@ -47,7 +53,6 @@ export const FinanceProvider = ({ children }) => {
             expense: data.expense,
           });
 
-          console.log('Categorias carregadas:', data);
         } else {
           console.warn('Formato inesperado ao carregar categorias:', data);
           setCategories({ income: [], expense: [] });
@@ -75,6 +80,7 @@ export const FinanceProvider = ({ children }) => {
 
   // Delete a transaction by ID
   const deleteTransaction = (id) => {
+      deleteTransactionId(id);
     setTransactions(prevTransactions =>
       prevTransactions.filter(transaction => transaction.id !== id)
     );
@@ -82,6 +88,7 @@ export const FinanceProvider = ({ children }) => {
 
   // Update an existing transaction
   const updateTransaction = (id, updatedTransaction) => {
+    updateTransactionId(id, updatedTransaction);
     setTransactions(prevTransactions =>
       prevTransactions.map(transaction =>
         transaction.id === id ? { ...transaction, ...updatedTransaction } : transaction

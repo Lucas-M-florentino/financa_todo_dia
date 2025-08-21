@@ -7,14 +7,24 @@ from fastapi.params import Body
 
 from app.data.dependencies import get_db
 from sqlalchemy.orm import Session
-from app.data.models import Category, Empresa, Transaction as TransactionModel, UserModel
+from app.data.models import (
+    Category,
+    Empresa,
+    Transaction as TransactionModel,
+    UserModel,
+)
 from app.api.models.models import (
+    BusinessSchema,
     Transaction,
     PutTransaction,
     UserLoginSchema,
     UserSchema,
 )
-from app.api.models.models_response import CategoryResponse, TransactionResponse
+from app.api.models.models_response import (
+    CategoryResponse,
+    TransactionResponse,
+    UserResponse,
+)
 
 from .auth.auth_handler import sign_jwt
 from .auth.auth_bearer import JWTBearer
@@ -51,6 +61,8 @@ def to_response(
         date=transaction.date.isoformat(),
         description=transaction.description,
         type=transaction.type,
+        empresa_id=transaction.empresa_id,
+        usuario_id=transaction.usuario_id,
         notes=transaction.notes,
     )
 
@@ -83,6 +95,13 @@ def check_user(db: Session, data: UserLoginSchema):
     return None
 
 
+def get_business(db: Session):
+    business = db.query(Empresa).all()
+    if not business:
+        raise HTTPException(status_code=404, detail="No business found")
+    return business
+
+
 def verify_password(plain_password, hashed_password):
     return pwd_context.verify(plain_password, hashed_password)
 
@@ -90,7 +109,21 @@ def verify_password(plain_password, hashed_password):
 def check_user(db: Session, data: UserLoginSchema):
     user = db.query(UserModel).filter(UserModel.email == data.email).first()
     if user and verify_password(data.password, user.password):
-        return sign_jwt(user.email)
+        # if business exists, get its name
+        business_name = None
+        if user.empresa:
+            business = db.query(Empresa).filter(Empresa.id == user.empresa_id).first()
+            business_name = business.nome if business else None
+
+        user_to_hash = UserResponse(
+            id=user.id,
+            nome=user.nome,
+            email=user.email,
+            cargo=user.cargo,
+            telefone=user.telefone,
+            empresa_nome=business_name,
+        )
+        return sign_jwt(user_to_hash)
     return None
 
 
@@ -106,60 +139,194 @@ async def create_user(user: UserSchema, db: Session = Depends(get_db)):
     db_user = db.query(UserModel).filter(UserModel.email == user.email).first()
     if db_user:
         raise HTTPException(status_code=400, detail="Email já registrado")
+    empresa_id = None
+    if user.empresa:
+        business = db.query(Empresa).filter(Empresa.nome == user.empresa).first()
+        if not business:
+            raise HTTPException(status_code=404, detail="Empresa não encontrada")
+        empresa_id = business.id
 
     new_user = UserModel(
         nome=user.nome,
         email=user.email,
         cargo=user.cargo,
         telefone=user.telefone,
-        empresa_id=user.empresa_id,
+        empresa_id=empresa_id,
         password=hash_password(user.password),
     )
     db.add(new_user)
     db.commit()
     db.refresh(new_user)
-    return sign_jwt(new_user.email)
+    user_to_hash = UserResponse(
+        id=new_user.id,
+        nome=new_user.nome,
+        email=new_user.email,
+        cargo=new_user.cargo,
+        telefone=new_user.telefone,
+        empresa_nome=business.nome if empresa_id else None,
+    )
+    return sign_jwt(user_to_hash)
 
 
 @router.post("/user/login", tags=["user"])
-async def user_login(user: UserLoginSchema = Body(...), db: Session = Depends(get_db)):
+async def user_login(user: UserLoginSchema, db: Session = Depends(get_db)):
     token = check_user(db, user)
     if token:
         return token
     return {"error": "Credenciais inválidas"}
 
-@router.post("/business", tags=["business"], dependencies=[Depends(JWTBearer())])
-async def create_business(
-    name: str = Body(..., embed=True),
-    db: Session = Depends(get_db)
-):
-    if not name:
-        raise HTTPException(status_code=400, detail="Business name is required")
-    
-    new_business = Empresa(name=name)
+
+@router.post("/user/logout", tags=["user"], dependencies=[Depends(JWTBearer())])
+async def user_logout(db: Session = Depends(get_db), email: str = Body(...)):
+    # Implement logout logic if needed, e.g., invalidate token
+    # For JWT, this is typically handled on the client side by deleting the token
+    if not email:
+        raise HTTPException(status_code=400, detail="Email is required for logout")
+    user = db.query(UserModel).filter(UserModel.email == email).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    return {"message": "User logged out successfully"}
+
+
+@router.get("/user/profile", tags=["user"], dependencies=[Depends(JWTBearer())])
+async def get_user_profile(db: Session = Depends(get_db), email: str = Body(...)):
+    if not email:
+        raise HTTPException(status_code=400, detail="Email is required")
+    user = db.query(UserModel).filter(UserModel.email == email).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    # get business name by id
+    empresa_nome = None
+    if user.empresa_id:
+        business = db.query(Empresa).filter(Empresa.id == user.empresa_id).first()
+        if business:
+            empresa_nome = business.nome
+
+    return UserResponse(
+        id=user.id,
+        nome=user.nome,
+        email=user.email,
+        cargo=user.cargo,
+        telefone=user.telefone,
+        empresa_nome=empresa_nome,
+    )
+
+
+@router.put("/user/profile", tags=["user"], dependencies=[Depends(JWTBearer())])
+async def update_user_profile(user: UserSchema, db: Session = Depends(get_db)):
+    existing_user = db.query(UserModel).filter(UserModel.id == user.id).first()
+    if not existing_user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    existing_user.nome = user.nome
+    existing_user.email = user.email
+    existing_user.cargo = user.cargo
+    existing_user.telefone = user.telefone
+    # get empresa by name
+    if user.empresa:
+        business = db.query(Empresa).filter(Empresa.id == user.empresa).first()
+        if not business:
+            raise HTTPException(status_code=404, detail="Empresa não encontrada")
+        existing_user.empresa_id = business.id
+
+    if user.password:
+        existing_user.password = hash_password(user.password)
+
+    db.commit()
+    db.refresh(existing_user)
+    return UserSchema(
+        id=existing_user.id,
+        nome=existing_user.nome,
+        email=existing_user.email,
+        cargo=existing_user.cargo,
+        telefone=existing_user.telefone,
+        empresa_id=existing_user.empresa_id,
+    )
+
+
+@router.get(
+    "/users",
+    tags=["user"],
+    response_model=List[UserResponse],
+    dependencies=[Depends(JWTBearer())],
+)
+async def get_users(db: Session = Depends(get_db)):
+    users = db.query(UserModel).all()
+    if not users:
+        raise HTTPException(status_code=404, detail="No users found")
+    list_users = []
+    for user in users:
+        empresa_nome = None
+        if user.empresa_id:
+            business = db.query(Empresa).filter(Empresa.id == user.empresa_id).first()
+            empresa_nome = business.nome if business else None
+        list_users.append(
+            UserResponse(
+                id=user.id,
+                nome=user.nome,
+                email=user.email,
+                cargo=user.cargo,
+                telefone=user.telefone,
+                empresa_nome=empresa_nome,
+            )
+        )
+    if not list_users:
+        raise HTTPException(status_code=404, detail="No users found")
+    return list_users
+
+
+@router.post("/business", tags=["business"])
+async def create_business(business: BusinessSchema, db: Session = Depends(get_db)):
+    db_business = db.query(Empresa).filter(Empresa.cnpj == business.cnpj).first()
+    if db_business:
+        raise HTTPException(status_code=400, detail="CNPJ já registrado")
+    new_business = Empresa(
+        nome=business.nome_empresa,
+        cnpj=business.cnpj,
+        telefone=business.telefone_empresa,
+        endereco=business.endereco,
+    )
     db.add(new_business)
     db.commit()
     db.refresh(new_business)
+
     return {"message": "Business created successfully", "business_id": new_business.id}
 
-@router.get("/business", tags=["business"], dependencies=[Depends(JWTBearer())])
+
+@router.get("/business", tags=["business"])
 async def get_business(db: Session = Depends(get_db)):
     business = db.query(Empresa).all()
     if not business:
         raise HTTPException(status_code=404, detail="No business found")
     return business
 
-@router.get("/users", response_model=List[UserSchema], dependencies=[Depends(JWTBearer())])
-async def get_users(db: Session = Depends(get_db)):
-    users = db.query(UserModel).all()
-    if not users:
-        raise HTTPException(status_code=404, detail="No users found")
-    return users
 
-@router.get("/transactions", response_model=List[TransactionResponse], dependencies=[Depends(JWTBearer())])
-async def get_transactions(
-    db: Session = Depends(get_db)
+@router.put("/business/{business_id}", tags=["business"])
+async def update_business(
+    business_id: int, business: BusinessSchema, db: Session = Depends(get_db)
 ):
+    existing_business = db.query(Empresa).filter(Empresa.id == business_id).first()
+    if not existing_business:
+        raise HTTPException(status_code=404, detail="Business not found")
+
+    existing_business.nome = business.nome_empresa
+    existing_business.cnpj = business.cnpj
+    existing_business.telefone = business.telefone_empresa
+    existing_business.endereco = business.endereco
+
+    db.commit()
+    db.refresh(existing_business)
+    return {"message": "Business updated successfully"}
+
+
+@router.get(
+    "/transactions",
+    tags=["transactions"],
+    response_model=List[TransactionResponse],
+    dependencies=[Depends(JWTBearer())],
+)
+async def get_transactions(db: Session = Depends(get_db)):
     transactions_db = db.query(TransactionModel).all()
     if not transactions_db:
         raise HTTPException(status_code=404, detail="No transactions found")
@@ -172,6 +339,7 @@ async def get_transactions(
 
 @router.post(
     "/transactions",
+    tags=["transactions"],
     response_model=TransactionResponse,
     dependencies=[Depends(JWTBearer())],
 )
@@ -189,11 +357,14 @@ async def create_transaction(transaction: Transaction, db: Session = Depends(get
     return to_response(new_transaction, category.name)
 
 
-@router.put("/transactions/{transaction_id}", response_model=TransactionResponse, dependencies=[Depends(JWTBearer())])
+@router.put(
+    "/transactions/{transaction_id}",
+    tags=["transactions"],
+    response_model=TransactionResponse,
+    dependencies=[Depends(JWTBearer())],
+)
 async def update_transaction(
-    transaction: PutTransaction,
-    transaction_id: int,
-    db: Session = Depends(get_db)
+    transaction: PutTransaction, transaction_id: int, db: Session = Depends(get_db)
 ):
     existing_transaction = (
         db.query(TransactionModel).filter(TransactionModel.id == transaction_id).first()
@@ -215,10 +386,13 @@ async def update_transaction(
     return to_response(existing_transaction, category_name)
 
 
-@router.get("/transactions/{transaction_id}", response_model=TransactionResponse, dependencies=[Depends(JWTBearer())])
-async def get_transaction_by_id(
-    transaction_id: int,
-    db: Session = Depends(get_db)):
+@router.get(
+    "/transactions/{transaction_id}",
+    tags=["transactions"],
+    response_model=TransactionResponse,
+    dependencies=[Depends(JWTBearer())],
+)
+async def get_transaction_by_id(transaction_id: int, db: Session = Depends(get_db)):
     transaction = db.query(TransactionModel).filter_by(id=transaction_id).first()
     if not transaction:
         raise HTTPException(status_code=404, detail="Transaction not found")
@@ -226,10 +400,12 @@ async def get_transaction_by_id(
     return to_response(transaction, category_name)
 
 
-@router.delete("/transactions/{transaction_id}", dependencies=[Depends(JWTBearer())])
-async def delete_transaction(
-    transaction_id: int,
-    db: Session = Depends(get_db)):
+@router.delete(
+    "/transactions/{transaction_id}",
+    tags=["transactions"],
+    dependencies=[Depends(JWTBearer())],
+)
+async def delete_transaction(transaction_id: int, db: Session = Depends(get_db)):
     transaction = (
         db.query(TransactionModel).filter(TransactionModel.id == transaction_id).first()
     )
@@ -240,10 +416,12 @@ async def delete_transaction(
     return {"message": "Transaction deleted successfully"}
 
 
-@router.post("/transactions/bulk", dependencies=[Depends(JWTBearer())])
+@router.post(
+    "/transactions/bulk", tags=["transactions"], dependencies=[Depends(JWTBearer())]
+)
 async def save_transactions(
-    transactions_data: List[Transaction],
-    db: Session = Depends(get_db)):
+    transactions_data: List[Transaction], db: Session = Depends(get_db)
+):
     if not transactions_data:
         raise HTTPException(status_code=400, detail="No transactions provided")
     for transaction in transactions_data:

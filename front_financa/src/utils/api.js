@@ -1,7 +1,75 @@
-
-
-// Use environment variables instead of .env
+// utils/api.js
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api';
+
+let authToken = null;
+
+const STORAGE_KEY = 'financeai_transactions';
+
+// Permitir salvar o token na memória
+export const setAuthToken = (token) => {
+  authToken = token;
+};
+
+// Função helper para adicionar o header Authorization
+const authHeaders = () => ({
+  'Content-Type': 'application/json',
+  ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
+});
+
+/**
+ * Logs the user in by sending credentials to the API
+ * @param {Object} credentials User credentials containing email and password
+ * @returns {Promise<Object>} Promise that resolves to the login response
+ */
+export const login = async (credentials) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/user/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(credentials),
+    });
+    
+    const data = await response.json();
+    console.log('Login response data:', data);
+    
+    // CORREÇÃO 1: Verificar ambos access_token e acces_token (typo comum)
+    const token = data.access_token || data.acces_token || data.token;
+    
+    if (token) {
+      // CORREÇÃO 2: Remover aspas extras e salvar corretamente
+      const cleanToken = String(token).replace(/^["']|["']$/g, '');
+      
+      setAuthToken(cleanToken); // CORREÇÃO 3: Passar o token para a função
+      localStorage.setItem('authToken', cleanToken); // CORREÇÃO 4: Salvar string limpa, não JSON
+    }
+
+    if (!response.ok) throw new Error('Login failed');
+    return data;
+  } catch (error) {
+    console.error('Error during login:', error);
+    throw error;
+  }
+};
+
+// Função para carregar token do localStorage na inicialização
+export const loadTokenFromStorage = () => {
+  const token = localStorage.getItem('authToken');
+  if (token) {
+    // Remove aspas extras se existirem
+    const cleanToken = token.replace(/^["']|["']$/g, '');
+    setAuthToken(cleanToken);
+    console.log('Token carregado do localStorage:', cleanToken);
+    return cleanToken;
+  }
+  return null;
+};
+
+// Função para limpar token
+export const clearAuthToken = () => {
+  authToken = null;
+  localStorage.removeItem('authToken');
+  console.log('Token removido');
+};
 
 /**
  * Gets transactions from the API
@@ -9,7 +77,9 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000
  */
 export const getTransactions = async () => {
   try {
-    const response = await fetch(`${API_BASE_URL}/transactions`);
+    const response = await fetch(`${API_BASE_URL}/transactions`, {
+      headers: authHeaders(),
+    });
     if (!response.ok) {
       throw new Error('Failed to fetch transactions');
     }
@@ -22,7 +92,9 @@ export const getTransactions = async () => {
 
 export const getAllCategories = async () => {
   try {
-    const response = await fetch(`${API_BASE_URL}/categories`);
+    const response = await fetch(`${API_BASE_URL}/categories`, {
+      headers: authHeaders(),
+    });
     if (!response.ok) {
       throw new Error('Failed to fetch categories');
     }
@@ -40,15 +112,11 @@ export const getAllCategories = async () => {
  * @returns {Promise<boolean>} Promise that resolves to success status
  */
 export const saveTransactions = async (transaction) => {
-  console.log('Saving transactions to API:', transaction);
-  console.log('typeof transactions:', typeof transaction);
   try {
     const response = await fetch(`${API_BASE_URL}/transactions`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(...transaction),
+      headers: authHeaders(), // CORREÇÃO 5: Usar authHeaders() consistentemente
+      body: JSON.stringify(transaction), // CORREÇÃO 6: Remover spread operator desnecessário
     });
 
     if (!response.ok) {
@@ -70,9 +138,7 @@ export const createTransaction = async (transaction) => {
   try {
     const response = await fetch(`${API_BASE_URL}/transactions`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: authHeaders(), // CORREÇÃO 7: Usar authHeaders() consistentemente
       body: JSON.stringify(transaction),
     });
 
@@ -91,10 +157,11 @@ export const createTransaction = async (transaction) => {
  * @param {number} id ID of the transaction to delete
  * @returns {Promise<boolean>} Promise that resolves to success status
  */
-export const deleteTransaction = async (id) => {
+export const deleteTransactionId = async (id) => {
   try {
     const response = await fetch(`${API_BASE_URL}/transactions/${id}`, {
-      method: 'DELETE',
+      method: 'DELETE', // CORREÇÃO 8: Mover method para posição correta
+      headers: authHeaders(),
     });
 
     if (!response.ok) {
@@ -113,13 +180,11 @@ export const deleteTransaction = async (id) => {
  * @param {Object} transaction Updated transaction object
  * @returns {Promise<Object>} Promise that resolves to the updated transaction
  */
-export const updateTransaction = async (id, transaction) => {
+export const updateTransactionId = async (id, transaction) => {
   try {
     const response = await fetch(`${API_BASE_URL}/transactions/${id}`, {
       method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: authHeaders(), // CORREÇÃO 9: Usar authHeaders() consistentemente
       body: JSON.stringify(transaction),
     });
 

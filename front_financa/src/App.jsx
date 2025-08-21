@@ -5,10 +5,14 @@ import Sidebar from './components/Sidebar';
 import TransactionForm from './components/TransactionForm';
 import Dashboard from './components/Dashboard';
 import ChatInterface from './components/ChatInterface';
+import Login from './pages/Login';
 import { FinanceProvider } from './context/FinanceContext';
+import { AuthProvider, useAuth } from './context/AuthContext';
 
-function App() {
+// Componente interno que usa o contexto de auth
+const AppContent = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
+  const { isAuthenticated, loading, login } = useAuth();
 
   const renderContent = () => {
     switch(activeTab) {
@@ -23,6 +27,21 @@ function App() {
     }
   };
 
+  // Mostra loading enquanto verifica autenticação
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-lg">Carregando...</div>
+      </div>
+    );
+  }
+
+  // Se não está logado, mostra tela de login
+  if (!isAuthenticated) {
+    return <Login onLogin={login} />;
+  }
+
+  // Se está logado, mostra a aplicação normal
   return (
     <FinanceProvider>
       <div className="min-h-screen bg-gray-50 flex flex-col">
@@ -35,6 +54,15 @@ function App() {
         </div>
       </div>
     </FinanceProvider>
+  );
+};
+
+// Componente principal que provê o contexto
+function App() {
+  return (
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
   );
 }
 

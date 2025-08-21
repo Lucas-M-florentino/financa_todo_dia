@@ -1,11 +1,11 @@
 // src/components/Sidebar.jsx
-import React from 'react';
 
 const Sidebar = ({ activeTab, setActiveTab }) => {
   const navItems = [
     { id: 'dashboard', label: 'Dashboard', icon: 'chart-bar' },
     { id: 'transactions', label: 'Registrar', icon: 'cash' },
-    { id: 'chat', label: 'Chat IA', icon: 'chat' }
+    { id: 'chat', label: 'Chat IA', icon: 'chat' },
+    { id: 'help', label: 'Ajuda', icon: 'help' },
   ];
 
   const renderIcon = (iconName) => {
@@ -26,6 +26,12 @@ const Sidebar = ({ activeTab, setActiveTab }) => {
         return (
           <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
             <path fillRule="evenodd" d="M18 10c0 3.866-3.582 7-8 7a8.841 8.841 0 01-4.083-.98L2 17l1.338-3.123C2.493 12.767 2 11.434 2 10c0-3.866 3.582-7 8-7s8 3.134 8 7zM7 9H5v2h2V9zm8 0h-2v2h2V9zM9 9h2v2H9V9z" clipRule="evenodd" />
+          </svg>
+        );      
+      case 'help':
+        return (
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+            <path fillRule="evenodd" d="M10 2a8 8 0 100 16 8 8 0 000-16zM6 9a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 01-1 1H7a1 1 0 01-1-1V9zm4 0a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 01-1 1h-2a1 1 0 01-1-1V9zM8 13a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 01-1 1H9a1 1 0 01-1-1v-2z" clipRule="evenodd" />
           </svg>
         );
       default:
