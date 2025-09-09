@@ -1,18 +1,39 @@
-name: Docker Image CI
+name: Docker Compose CI
 
 on:
   push:
-    branches: [ "master" ]
+    branches: [main]
   pull_request:
-    branches: [ "master" ]
+    branches: [main]
 
 jobs:
-
-  build:
-
+  build-and-test:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
-    - name: Build the Docker image
-      run: docker build . --file Dockerfile --tag my-image-name:$(date +%s)
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Set up Docker Compose
+        run: |
+          sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+          sudo chmod +x /usr/local/bin/docker-compose
+          docker-compose version
+
+      - name: Build and start containers
+        run: docker-compose up -d --build
+
+      # Optional: Run tests if you have a test service or command
+      # - name: Run tests
+      #   run: docker-compose exec <service_name> <test_command>
+
+      - name: Show logs if failed
+        if: failure()
+        run: docker-compose logs
+
+      - name: Stop containers
+        if: always()
+        run: docker-compose down
