@@ -3,8 +3,8 @@ import React, { createContext, useContext, useState, useEffect } from "react";
 import {
   loadTokenFromStorage,
   clearAuthToken,
-  getUserProfile,
 } from "../utils/api";
+import {saveLocalProfile, clearLocalProfile, getLocalProfile} from "../utils/localStorage";
 
 const AuthContext = createContext();
 
@@ -16,60 +16,57 @@ export const useAuth = () => {
   return context;
 };
 
+
 export const AuthProvider = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState(null);
-  const [profile, setProfile] = useState(null);
 
   // Verifica se já está logado ao carregar a app
   useEffect(() => {
-    const checkAuth = async () => {
-      console.log("🔍 Verificando autenticação...");
-
+    const init = async () => {
       const token = loadTokenFromStorage();
       if (!token) {
-        console.log("❌ Nenhum token encontrado");
         setIsAuthenticated(false);
         setLoading(false);
         return;
       }
 
-      try {
-        const profileData = await getUserProfile();
-        setProfile(profileData);
+      // Decodificar token para obter dados do usuário
+      const userData = getLocalProfile();
+      if (userData) {
         setIsAuthenticated(true);
-        console.log("✅ Token válido, usuário autenticado");
-      } catch (err) {
-        console.error("❌ Erro ao buscar perfil, token inválido:", err);
+        setUser(userData); // Isso deve incluir o email
+      } else {
+        // Token inválido, limpar
         clearAuthToken();
+        clearLocalProfile();
         setIsAuthenticated(false);
-      } finally {
-        setLoading(false);
       }
+      
+      setLoading(false);
     };
 
-    checkAuth();
+    init();
   }, []);
 
   const login = (userData) => {
-    console.log("✅ Login realizado com sucesso");
     setIsAuthenticated(true);
     setUser(userData);
+    saveLocalProfile(userData);
+    setLoading(false);
   };
 
   const logout = () => {
-    console.log("👋 Fazendo logout...");
     clearAuthToken();
+    clearLocalProfile();
     setIsAuthenticated(false);
     setUser(null);
-    setProfile(null);
   };
 
   const value = {
     isAuthenticated,
     user,
-    profile,
     loading,
     login,
     logout,

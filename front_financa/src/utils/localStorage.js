@@ -35,6 +35,16 @@ export const saveLocalProfile = (profile) => {
   }
 };
 
+export const clearLocalProfile = () => {
+  try {
+    localStorage.removeItem('financeai_profile');
+     return true;
+  } catch (error) {
+    console.error('Error clearing profile from localStorage:', error);
+    return false;
+  }
+};
+
 /**
  * Saves transactions to localStorage
  * @param {Array} transactions Array of transaction objects

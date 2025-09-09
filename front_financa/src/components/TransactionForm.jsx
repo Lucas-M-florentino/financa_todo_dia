@@ -75,8 +75,8 @@ const TransactionForm = () => {
   };
 
   return (
-    <div className="max-w-2xl mx-auto bg-white rounded-lg shadow-md p-6">
-      <h2 className="text-2xl font-semibold text-gray-800 mb-6">Registrar Transação</h2>
+    <div className="max-w-2xl mx-auto bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+      <h2 className="text-2xl font-semibold text-gray-800 dark:text-gray-50 mb-6">Registrar Transação</h2>
 
       {feedback.show && (
         <div className={`p-3 rounded-md mb-4 ${feedback.type === 'success' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
@@ -87,7 +87,7 @@ const TransactionForm = () => {
 
       <form onSubmit={handleSubmit}>
         <div className="mb-4">
-          <label className="block text-gray-700 font-medium mb-2" htmlFor="type">
+          <label className="block text-gray-700 dark:text-gray-50 font-medium mb-2" htmlFor="type">
             Tipo
           </label>
           <div className="flex space-x-4">
@@ -120,7 +120,7 @@ const TransactionForm = () => {
         </div>
 
         <div className="mb-4">
-          <label className="block text-gray-700 font-medium mb-2" htmlFor="description">
+          <label className="block text-gray-700 dark:text-gray-50 font-medium mb-2" htmlFor="description">
             Descrição
           </label>
           <input
@@ -135,7 +135,7 @@ const TransactionForm = () => {
         </div>
 
         <div className="mb-4">
-          <label className="block text-gray-700 font-medium mb-2" htmlFor="amount">
+          <label className="block text-gray-700 dark:text-gray-50 font-medium mb-2" htmlFor="amount">
             Valor (R$)
           </label>
           <input
@@ -152,7 +152,7 @@ const TransactionForm = () => {
         </div>
 
         <div className="mb-4">
-          <label className="block text-gray-700 font-medium mb-2" htmlFor="category">
+          <label className="block text-gray-700 dark:text-gray-50 font-medium mb-2" htmlFor="category">
             Categoria
           </label>
           <select
@@ -171,7 +171,7 @@ const TransactionForm = () => {
         </div>
 
         <div className="mb-6">
-          <label className="block text-gray-700 font-medium mb-2" htmlFor="date">
+          <label className="block text-gray-700 dark:text-gray-50 font-medium mb-2" htmlFor="date">
             Data
           </label>
           <input

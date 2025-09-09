@@ -16,6 +16,13 @@ const AppContent = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
   const { isAuthenticated, loading, login } = useAuth();
 
+   const [theme, setTheme] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('theme') || 'light';
+    }
+    return 'light';
+  });
+
   const renderContent = () => {
     switch(activeTab) {
       case 'dashboard':
@@ -24,8 +31,8 @@ const AppContent = () => {
         return <TransactionForm />;
       case 'chat':
         return <ChatInterface />;
-      // case 'profile':
-      //   return <Profile />
+      case 'profile':
+        return <Profile />
       default:
         return <Dashboard />;
     }
@@ -48,8 +55,8 @@ const AppContent = () => {
   // Se está logado, mostra a aplicação normal
   return (
      <FinanceProvider>
-      {/* <ProfileProvider> */}
-        <div className="min-h-screen bg-gray-50 flex flex-col">
+      <ProfileProvider>
+        <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col">
           <Header />
           <div className="flex flex-1 overflow-hidden">
             <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} />
@@ -58,7 +65,7 @@ const AppContent = () => {
             </main>
           </div>
         </div>
-      {/* </ProfileProvider> */}
+      </ProfileProvider>
     </FinanceProvider>
   );
 };

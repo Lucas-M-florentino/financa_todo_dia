@@ -1,141 +1,148 @@
-// utils/api.js
+// utils/api.js (parte relevante)
 import axios from "axios";
 
-const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL || "http://localhost:8000/api";
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000/api";
 
-const api = axios.create({
+export const api = axios.create({
   baseURL: API_BASE_URL,
-  headers: {
-    "Content-Type": "application/json",
-    Accept: "application/json",
-  },
-  withCredentials: false,
 });
 
-// Interceptor para erros globais
-api.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    if (error.response) {
-      const status = error.response.status;
+api.defaults.headers.common["Content-Type"] = "application/json";
+api.defaults.headers.common["Accept"] = "application/json";
 
-      // Token expirado ou inválido
+// interceptor global de resposta
+api.interceptors.response.use(
+  (res) => res,
+  (err) => {
+    if (err.response) {
+      const status = err.response.status;
       if ([401, 403].includes(status)) {
         console.warn("⚠️ Token expirado ou inválido. Fazendo logout...");
-        // se a rota for login remover o token do localstorage
-        if (window.location.pathname !== "/login") {
-          localStorage.removeItem("authToken");
-        }
-        // window.location.href = "/"; // redireciona pro login
+        localStorage.removeItem("authToken");
+        delete api.defaults.headers.common["Authorization"];
+        // opcional: redirecionar ao login
+        // window.location.href = "/";
       }
     }
-    return Promise.reject(error);
+    return Promise.reject(err);
   }
 );
 
-// Adicionar/remover token nos headers
 export const setAuthToken = (token) => {
   if (token) {
-    api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+    const clean = String(token).replace(/^["']|["']$/g, "");
+    api.defaults.headers.common["Authorization"] = `Bearer ${clean}`;
+    localStorage.setItem("authToken", clean);
   } else {
     delete api.defaults.headers.common["Authorization"];
+    localStorage.removeItem("authToken");
   }
 };
 
-// Carregar token salvo no localStorage
 export const loadTokenFromStorage = () => {
   const token = localStorage.getItem("authToken");
   if (token) {
-    const cleanToken = token.replace(/^["']|["']$/g, ""); // remove aspas extras
-    setAuthToken(cleanToken);
-    return cleanToken;
+    const clean = token.replace(/^["']|["']$/g, "");
+    api.defaults.headers.common["Authorization"] = `Bearer ${clean}`;
+    return clean;
   }
   return null;
 };
 
 export const clearAuthToken = () => {
+  delete api.defaults.headers.common["Authorization"];
   localStorage.removeItem("authToken");
-  setAuthToken(null);
-  console.log("Token removido");
 };
 
-// ==================== AUTH ====================
+// LOGIN
 export const login = async (credentials) => {
   try {
-    const { data } = await api.post("/user/login", credentials);
+    const res = await api.post("/user/login", credentials);
+    const data = res.data;
+    const token = data.access_token;
 
-    const token = data.access_token || data.token;
     if (token) {
-      const cleanToken = String(token).replace(/^["']|["']$/g, "");
-      setAuthToken(cleanToken);
-      localStorage.setItem("authToken", cleanToken);
-      localStorage.setItem("userEmail", credentials.email);
+      setAuthToken(token);
     }
-
-    return data;
-  } catch (error) {
-    console.error("Error during login:", error);
-    throw error;
+    // opcional: retornar dados do usuário
+    return data.user;
+  } catch (err) {
+    console.error("Error during login:", err);
+    throw err;
   }
 };
 
+// GET PROFILE
+export const getUserProfile = async (user_email) => {
+  try {
+    console.log("Fetching profile for:", user_email);
+    const res = await api.get("/user/profile/" + user_email);
+    return res.data;
+  } catch (err) {
+    console.error("Error fetching user profile:", err);
+    throw err;
+  }
+};
+
+// REGISTER (exemplo simples)
 export const register = async (userInfo) => {
   try {
-    const { data } = await api.post("/user/register", userInfo);
-    return data;
-  } catch (error) {
-    console.error("Error during registration:", error);
-    throw error;
+    const res = await api.post("/user/signup", userInfo);
+    return res.data;
+  } catch (err) {
+    console.error("Error during registration:", err);
+    throw err;
   }
 };
 
-// ==================== PROFILE ====================
-export const getUserProfile = async () => {
-  const { data } = await api.get("/user/profile");
-  return data;
+// CATEGORIES
+export const getAllCategories = async () => {
+  try {
+    const res = await api.get("/categories");
+    return res.data;
+  } catch (err) {
+    console.error("Error fetching categories:", err);
+    throw err;
+  }
 };
 
-export const saveProfile = async (profileData) => {
-  const { data } = await api.post("/user/profile", profileData);
-  return data;
-};
-
-export const updateUserProfile = async (profileData) => {
-  const { data } = await api.put("/user/profile", profileData);
-  return data;
-};
-
-// ==================== TRANSACTIONS ====================
-export const getTransactions = async () => {
-  const { data } = await api.get("/transactions");
-  return data;
-};
-
-export const saveTransactions = async (transaction) => {
-  const { data } = await api.post("/transactions", transaction);
-  return data;
+// TRANSACTIONS
+export const getTransactions = async (user_id) => {
+  try {
+    const res = await api.get("/transactions/" + user_id);
+    return res.data;
+  } catch (err) {
+    console.error("Error fetching transactions:", err);
+    throw err;
+  }
 };
 
 export const createTransaction = async (transaction) => {
-  const { data } = await api.post("/transactions", transaction);
-  return data;
+  try {
+    const res = await api.post("/transactions", transaction);
+    return res.data;
+  } catch (err) {
+    console.error("Error creating transaction:", err);
+    throw err;
+  }
 };
 
 export const deleteTransactionId = async (id) => {
-  const { data } = await api.delete(`/transactions/${id}`);
-  return data;
+  try {
+    const res = await api.delete(`/transactions/${id}`);
+    return res.data;
+  } catch (err) {
+    console.error("Error deleting transaction:", err);
+    throw err;
+  }
 };
 
 export const updateTransactionId = async (id, transaction) => {
-  const { data } = await api.put(`/transactions/${id}`, transaction);
-  return data;
+  try {
+    const res = await api.put(`/transactions/${id}`, transaction);
+    return res.data;
+  } catch (err) {
+    console.error("Error updating transaction:", err);
+    throw err;
+  }
 };
-
-// ==================== CATEGORIES ====================
-export const getAllCategories = async () => {
-  const { data } = await api.get("/categories");
-  return data;
-};
-
-export default api;

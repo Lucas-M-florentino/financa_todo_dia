@@ -5,9 +5,11 @@ import {
   saveLocalTransactions,
   updateLocalTransaction,
   deleteLocalTransaction,
+  getLocalProfile,
 } from "../utils/localStorage";
 import {
-  saveTransactions,
+  getTransactions,
+  createTransaction,
   updateTransactionId,
   deleteTransactionId,
   getAllCategories,
@@ -29,11 +31,34 @@ export const FinanceProvider = ({ children }) => {
     }
   }, []);
 
-  // Carrega só do localStorage
+  // // Carrega só do localStorage
+  // useEffect(() => {
+  //   const localTransactions = getLocalTransactions();
+  //   setTransactions(Array.isArray(localTransactions) ? localTransactions : []);
+  //   setIsLoading(false);
+  // }, []);
+
+  // carrega transações da API
   useEffect(() => {
-    const localTransactions = getLocalTransactions();
-    setTransactions(Array.isArray(localTransactions) ? localTransactions : []);
-    setIsLoading(false);
+    const profile = getLocalProfile();
+    const transactionsFromApi = getTransactions(profile.id); // passa user_id
+    transactionsFromApi
+      .then((data) => {
+        if (Array.isArray(data)) {
+          setTransactions(data);
+          saveLocalTransactions(data); // sincroniza local
+        } else {
+          console.warn("Formato inesperado ao carregar transações:", data);
+        }
+      })
+      .catch((error) => {
+        console.error("Erro ao buscar transações:", error);
+        const localTransactions = getLocalTransactions();
+        setTransactions(Array.isArray(localTransactions) ? localTransactions : []);
+      })
+      .finally(() => {
+        setIsLoading(false);
+      });
   }, []);
 
   // Busca categorias da API
@@ -59,7 +84,16 @@ export const FinanceProvider = ({ children }) => {
   // Add a new transaction
   const addTransaction = async (transaction) => {
     try {
-      const saved = await saveTransactions(transaction); // grava na API
+      // pegar user_id e empresa_nome do localStorage
+      const profile = getLocalProfile();
+      if (profile) {
+        transaction.user_id = profile.id;
+        transaction.empresa_nome = profile.empresa_nome;
+      }
+      // inserir na API
+      transaction.usuario_id = profile.id;
+      transaction.empresa_nome = profile.empresa_nome;
+      const saved = await createTransaction(transaction); // grava na API
       const updatedList = [...transactions, saved];
       setTransactions(updatedList);
       saveLocalTransactions(updatedList); // sincroniza local
@@ -83,6 +117,7 @@ export const FinanceProvider = ({ children }) => {
   // Update an existing transaction
   const updateTransaction = async (id, updatedTransaction) => {
     try {
+      
       await updateTransactionId(id, updatedTransaction);
       const updated = transactions.map((t) =>
         t.id === id ? { ...t, ...updatedTransaction } : t

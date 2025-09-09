@@ -10,14 +10,15 @@ const Login = ({ onLogin }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
-
     try {
-      // Faz login e recebe token
-      await login({ email, password });
-      onLogin(); // Notifica o contexto que o login foi feito
+      const data = await login({ email, password }); // await!
+      // token já setado em api.defaults pelo login()
+      // se backend retornou user no payload, use-o; senão busque profile:
+      const user = data;
+      onLogin(user); // notifica AuthContext / pai que login foi OK
     } catch (err) {
-      console.error("Erro no login:", err);
-      setError("Credenciais inválidas ou erro de conexão");
+      console.error("Login error:", err);
+      setError("Credenciais inválidas");
     }
   };
 

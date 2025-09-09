@@ -1,9 +1,19 @@
-// src/components/Header.jsx
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 
 const Header = () => {
   const { logout, user } = useAuth();
+  const [dark, setDark] = useState(() => localStorage.getItem('theme') === 'dark');
+
+  useEffect(() => {
+    if (dark) {
+      document.documentElement.classList.add('dark');
+      localStorage.setItem('theme', 'dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+      localStorage.setItem('theme', 'light');
+    }
+  }, [dark]);
 
   const handleLogout = () => {
     if (window.confirm('Deseja realmente sair?')) {
@@ -12,7 +22,7 @@ const Header = () => {
   };
 
   return (
-    <header className="bg-indigo-600 text-white shadow-md">
+    <header className="bg-indigo-600 text-white shadow-md dark:bg-gray-900">
       <div className="container mx-auto px-4 py-3 flex justify-between items-center">
         <div className="flex items-center space-x-2">
           <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" viewBox="0 0 20 20" fill="currentColor">
@@ -23,15 +33,32 @@ const Header = () => {
         </div>
         
         <div className="flex items-center space-x-4">
+          <button
+            onClick={() => setDark(!dark)}
+            className="p-2 rounded-full bg-indigo-500 hover:bg-indigo-700 transition-colors duration-200 focus:outline-none"
+            title="Alternar tema"
+          >
+            {dark ? (
+              // Ícone de sol (tema claro)
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m8.66-13.66l-.71.71M4.05 19.07l-.71.71M21 12h-1M4 12H3m16.66 7.66l-.71-.71M4.05 4.93l-.71-.71M12 7a5 5 0 100 10 5 5 0 000-10z" />
+              </svg>
+            ) : (
+              // Ícone de lua (tema escuro)
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12.79A9 9 0 1111.21 3a7 7 0 109.79 9.79z" />
+              </svg>
+            )}
+          </button>
           <div className="hidden md:block text-center">
-            <p className="text-sm text-indigo-100">Seu assistente inteligente para gerenciamento financeiro</p>
+            <p className="text-sm text-indigo-100 dark:text-indigo-300">Seu assistente inteligente para gerenciamento financeiro</p>
           </div>
           
           <div className="flex items-center space-x-3">
             {user && (
               <div className="hidden sm:block text-right">
-                <p className="text-sm font-medium">{user.name || 'Usuário'}</p>
-                <p className="text-xs text-indigo-200">{user.email}</p>
+                <p className="text-sm font-medium">{user.nome || 'Usuário'}</p>
+                <p className="text-xs text-indigo-200 dark:text-indigo-400">{user.email}</p>
               </div>
             )}
             <button

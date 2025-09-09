@@ -47,7 +47,7 @@ const Sidebar = ({ activeTab, setActiveTab }) => {
   };
 
   return (
-    <aside className="bg-indigo-800 text-white w-20 md:w-64 flex-shrink-0 flex flex-col">
+    <aside className="bg-indigo-800 dark:bg-gray-900 text-white w-20 md:w-64 flex-shrink-0 flex flex-col">
       <nav className="flex-1 pt-6">
         <ul className="space-y-1">
           {navItems.map((item) => (
