@@ -6,6 +6,7 @@ const Sidebar = ({ activeTab, setActiveTab }) => {
     { id: 'transactions', label: 'Registrar', icon: 'cash' },
     { id: 'chat', label: 'Chat IA', icon: 'chat' },
     { id: 'help', label: 'Ajuda', icon: 'help' },
+    { id: 'profile', label: 'Perfil', icon: 'user' },
   ];
 
   const renderIcon = (iconName) => {
@@ -32,6 +33,12 @@ const Sidebar = ({ activeTab, setActiveTab }) => {
         return (
           <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
             <path fillRule="evenodd" d="M10 2a8 8 0 100 16 8 8 0 000-16zM6 9a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 01-1 1H7a1 1 0 01-1-1V9zm4 0a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 01-1 1h-2a1 1 0 01-1-1V9zM8 13a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 01-1 1H9a1 1 0 01-1-1v-2z" clipRule="evenodd" />
+          </svg>
+        );
+      case 'user':
+        return (
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+            <path fillRule="evenodd" d="M10 2a5 5 0 100 10 5 5 0 000-10zM2 18a8 8 0 1116 0H2z" clipRule="evenodd" />
           </svg>
         );
       default:

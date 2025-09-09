@@ -6,6 +6,8 @@ const Dashboard = () => {
   const { transactions, deleteTransaction } = useContext(FinanceContext);
   const [timeFilter, setTimeFilter] = useState('all');
   const [categoryFilter, setCategoryFilter] = useState('all');
+  const [filterStartDate, setFilterStartDate] = useState(null);
+  const [filterEndDate, setFilterEndDate] = useState(null);
   
   // Ensure transactions is always an array
   const safeTransactions = Array.isArray(transactions) ? transactions : [];
@@ -15,7 +17,7 @@ const Dashboard = () => {
     let filtered = [...safeTransactions];
     
     // Time filter
-    if (timeFilter !== 'all') {
+    if (timeFilter !== 'all' || filterEndDate || filterStartDate) {
       const now = new Date();
       let startDate;
       
@@ -32,6 +34,33 @@ const Dashboard = () => {
         case 'today':
           startDate = new Date(now.setHours(0, 0, 0, 0));
           break;
+        case 'last_month':
+          startDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+          break;
+        case 'custom':
+         if (filterStartDate || filterEndDate) {
+            filtered = filtered.filter(transaction => {
+              const transactionDate = new Date(transaction.date);
+              
+              // Aplicar filtro de data inicial se especificada
+              if (filterStartDate) {
+                const start = new Date(filterStartDate);
+                start.setHours(0, 0, 0, 0); // Início do dia
+                if (transactionDate < start) return false;
+              }
+              
+              // Aplicar filtro de data final se especificada
+              if (filterEndDate) {
+                const end = new Date(filterEndDate);
+                end.setHours(23, 59, 59, 999); // Final do dia
+                if (transactionDate > end) return false;
+              }
+              
+              return true;
+            });
+            console.log('Custom filter applied:', filterStartDate, filterEndDate);
+          }
+          break;
         default:
           startDate = null;
       }
@@ -40,7 +69,7 @@ const Dashboard = () => {
         filtered = filtered.filter(transaction => 
           new Date(transaction.date) >= startDate
         );
-      }
+      }      
     }
     
     // Category filter
@@ -121,7 +150,25 @@ const Dashboard = () => {
       <div className="bg-white rounded-lg shadow-md p-6">
         <div className="flex flex-wrap items-center justify-between mb-6">
           <h2 className="text-xl font-semibold text-gray-800">Dashboard Financeiro</h2>
-          
+          {/* {timeFilter === 'custom' && (
+            <div className="flex items-center space-x-2">
+              <input
+                type="date"
+                value={filterStartDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                className="border rounded-md p-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                placeholder="Data inicial"
+              />
+              <span className="text-gray-500">até</span>
+              <input
+                type="date"
+                value={filterEndDate}
+                onChange={(e) => setEndDate(e.target.value)}
+                className="border rounded-md p-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                placeholder="Data final"
+              />
+            </div>
+          )} */}
           <div className="flex space-x-2 mt-2 sm:mt-0">
             <select 
               value={timeFilter}
@@ -132,6 +179,8 @@ const Dashboard = () => {
               <option value="month">Este mês</option>
               <option value="week">Esta semana</option>
               <option value="today">Hoje</option>
+              <option value="last_month">Mês passado</option>
+              <option value="custom">Intervalo personalizado</option>
             </select>
             
             <select 
@@ -146,6 +195,25 @@ const Dashboard = () => {
               ))}
             </select>
           </div>
+           {timeFilter === 'custom' && (
+            <div className="flex items-center space-x-2 mt-4 w-full">
+              <input
+                type="date"
+                value={filterStartDate}
+                onChange={(e) => setFilterStartDate(e.target.value)}
+                className="border rounded-md p-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                placeholder="Data inicial"
+              />
+              <span className="text-gray-500">até</span>
+              <input
+                type="date"
+                value={filterEndDate}
+                onChange={(e) => setFilterEndDate(e.target.value)}
+                className="border rounded-md p-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                placeholder="Data final"
+              />
+            </div>
+          )}
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

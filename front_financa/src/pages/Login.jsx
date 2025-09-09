@@ -1,30 +1,23 @@
 // src/pages/Login.jsx
-import React, { useState } from 'react';
-import { login } from '../utils/api';
+import React, { useState } from "react";
+import { login } from "../utils/api";
 
 const Login = ({ onLogin }) => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [error, setError] = useState(null);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError(null); // Limpa erros anteriores
+    setError(null);
 
     try {
-      const result = await login({ email, password });
-      onLogin();
+      // Faz login e recebe token
+      await login({ email, password });
+      onLogin(); // Notifica o contexto que o login foi feito
     } catch (err) {
-      console.error('Login error:', err);
-
-      // Verifica se o token foi salvo mesmo com erro
-      const savedToken = localStorage.getItem('authToken');
-      if (savedToken) {
-        console.log('Token found, proceeding with login');
-        onLogin();
-      } else {
-        setError('Credenciais inválidas');
-      }
+      console.error("Erro no login:", err);
+      setError("Credenciais inválidas ou erro de conexão");
     }
   };
 
@@ -42,6 +35,7 @@ const Login = ({ onLogin }) => {
           className="w-full p-2 mb-3 border rounded"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
+          required
         />
         <input
           type="password"
@@ -49,6 +43,7 @@ const Login = ({ onLogin }) => {
           className="w-full p-2 mb-3 border rounded"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
+          required
         />
         <button
           type="submit"

@@ -6,8 +6,10 @@ import TransactionForm from './components/TransactionForm';
 import Dashboard from './components/Dashboard';
 import ChatInterface from './components/ChatInterface';
 import Login from './pages/Login';
+import Profile from './pages/Profile';
 import { FinanceProvider } from './context/FinanceContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { ProfileProvider } from './context/ProfileContext';
 
 // Componente interno que usa o contexto de auth
 const AppContent = () => {
@@ -22,6 +24,8 @@ const AppContent = () => {
         return <TransactionForm />;
       case 'chat':
         return <ChatInterface />;
+      // case 'profile':
+      //   return <Profile />
       default:
         return <Dashboard />;
     }
@@ -43,16 +47,18 @@ const AppContent = () => {
 
   // Se está logado, mostra a aplicação normal
   return (
-    <FinanceProvider>
-      <div className="min-h-screen bg-gray-50 flex flex-col">
-        <Header />
-        <div className="flex flex-1 overflow-hidden">
-          <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} />
-          <main className="flex-1 overflow-y-auto p-4 md:p-6">
-            {renderContent()}
-          </main>
+     <FinanceProvider>
+      {/* <ProfileProvider> */}
+        <div className="min-h-screen bg-gray-50 flex flex-col">
+          <Header />
+          <div className="flex flex-1 overflow-hidden">
+            <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} />
+            <main className="flex-1 overflow-y-auto p-4 md:p-6">
+              {renderContent()}
+            </main>
+          </div>
         </div>
-      </div>
+      {/* </ProfileProvider> */}
     </FinanceProvider>
   );
 };

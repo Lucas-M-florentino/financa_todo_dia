@@ -1,13 +1,19 @@
 // src/context/FinanceContext.jsx
-import React, { createContext, useState, useEffect } from 'react';
-// import { getTransactions, saveTransactions } from '../utils/localStorage';
-import { getTransactions, saveTransactions, updateTransactionId, deleteTransactionId, getAllCategories, setAuthToken } from '../utils/api';
+import React, { createContext, useState, useEffect } from "react";
+import {
+  getLocalTransactions,
+  saveLocalTransactions,
+  updateLocalTransaction,
+  deleteLocalTransaction,
+} from "../utils/localStorage";
+import {
+  saveTransactions,
+  updateTransactionId,
+  deleteTransactionId,
+  getAllCategories,
+  setAuthToken,
+} from "../utils/api";
 
-/*
-  Modificação: Não consultar transações anteriores.
-  Remover o carregamento inicial de transações.
-  Apenas enviar (salvar) transações quando elas mudarem.
-*/
 export const FinanceContext = createContext();
 
 export const FinanceProvider = ({ children }) => {
@@ -15,50 +21,34 @@ export const FinanceProvider = ({ children }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [categories, setCategories] = useState({ income: [], expense: [] });
 
+  // Seta o token no axios sempre que a app iniciar
   useEffect(() => {
-  const token = localStorage.getItem('authToken');
-  if (token) {
-    setAuthToken(token);
-  }
-}, []);
-
-  // Load transactions from api on initial render
-  useEffect(() => {
-    const loadTransactions = async () => {
-      try {
-        const savedTransactions = await getTransactions();
-        setTransactions(Array.isArray(savedTransactions) ? savedTransactions : []);
-      } catch (error) {
-        console.error('Error loading transactions:', error);
-        // Start with empty array if error occurs
-        setTransactions([]);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    loadTransactions();
+    const token = localStorage.getItem("authToken");
+    if (token) {
+      setAuthToken(token);
+    }
   }, []);
 
-  // Fetch categories from API on mount
+  // Carrega só do localStorage
+  useEffect(() => {
+    const localTransactions = getLocalTransactions();
+    setTransactions(Array.isArray(localTransactions) ? localTransactions : []);
+    setIsLoading(false);
+  }, []);
+
+  // Busca categorias da API
   useEffect(() => {
     const fetchCategories = async () => {
       try {
         const data = await getAllCategories();
-
-        // Verifica se é um array com pelo menos um objeto com income/expense
-        if (data.income && data.expense) {
-          setCategories({
-            income: data.income,
-            expense: data.expense,
-          });
-
+        if (data?.income && data?.expense) {
+          setCategories(data);
         } else {
-          console.warn('Formato inesperado ao carregar categorias:', data);
+          console.warn("Formato inesperado ao carregar categorias:", data);
           setCategories({ income: [], expense: [] });
         }
       } catch (error) {
-        console.error('Erro ao buscar categorias:', error);
+        console.error("Erro ao buscar categorias:", error);
         setCategories({ income: [], expense: [] });
       }
     };
@@ -66,58 +56,61 @@ export const FinanceProvider = ({ children }) => {
     fetchCategories();
   }, []);
 
-
   // Add a new transaction
-  const addTransaction = (transaction) => {
-    saveTransactions([transaction])
-      .then(() => {
-        setTransactions(prevTransactions => [...prevTransactions, transaction]);
-      })
-      .catch(error => {
-        console.error('Error saving transaction:', error);
-      });
+  const addTransaction = async (transaction) => {
+    try {
+      const saved = await saveTransactions(transaction); // grava na API
+      const updatedList = [...transactions, saved];
+      setTransactions(updatedList);
+      saveLocalTransactions(updatedList); // sincroniza local
+    } catch (error) {
+      console.error("Erro ao salvar transação:", error);
+    }
   };
 
   // Delete a transaction by ID
-  const deleteTransaction = (id) => {
-      deleteTransactionId(id);
-    setTransactions(prevTransactions =>
-      prevTransactions.filter(transaction => transaction.id !== id)
-    );
+  const deleteTransaction = async (id) => {
+    try {
+      await deleteTransactionId(id);
+      const updated = transactions.filter((t) => t.id !== id);
+      setTransactions(updated);
+      deleteLocalTransaction(id);
+    } catch (error) {
+      console.error("Erro ao deletar transação:", error);
+    }
   };
 
   // Update an existing transaction
-  const updateTransaction = (id, updatedTransaction) => {
-    updateTransactionId(id, updatedTransaction);
-    setTransactions(prevTransactions =>
-      prevTransactions.map(transaction =>
-        transaction.id === id ? { ...transaction, ...updatedTransaction } : transaction
-      )
-    );
+  const updateTransaction = async (id, updatedTransaction) => {
+    try {
+      await updateTransactionId(id, updatedTransaction);
+      const updated = transactions.map((t) =>
+        t.id === id ? { ...t, ...updatedTransaction } : t
+      );
+      setTransactions(updated);
+      updateLocalTransaction({ id, ...updatedTransaction });
+    } catch (error) {
+      console.error("Erro ao atualizar transação:", error);
+    }
   };
 
-  // Clear all transactions
   const clearTransactions = () => {
     setTransactions([]);
+    saveLocalTransactions([]);
   };
 
-  // Calculate summary statistics
   const getFinancialSummary = () => {
     const income = transactions
-      .filter(t => t.type === 'income')
+      .filter((t) => t.type === "income")
       .reduce((sum, t) => sum + Math.abs(t.amount), 0);
 
     const expenses = transactions
-      .filter(t => t.type === 'expense')
+      .filter((t) => t.type === "expense")
       .reduce((sum, t) => sum + Math.abs(t.amount), 0);
 
-    const balance = income - expenses;
-
-    return { income, expenses, balance };
+    return { income, expenses, balance: income - expenses };
   };
 
-
-  // Memoize the context value to avoid unnecessary re-renders
   const contextValue = {
     transactions,
     categories,
@@ -126,7 +119,7 @@ export const FinanceProvider = ({ children }) => {
     deleteTransaction,
     updateTransaction,
     clearTransactions,
-    getFinancialSummary
+    getFinancialSummary,
   };
 
   return (

@@ -34,7 +34,6 @@ const Header = () => {
                 <p className="text-xs text-indigo-200">{user.email}</p>
               </div>
             )}
-            
             <button
               onClick={handleLogout}
               className="flex items-center space-x-1 text-sm text-indigo-100 hover:text-white px-3 py-2 rounded-md hover:bg-indigo-700 transition-colors duration-200"
